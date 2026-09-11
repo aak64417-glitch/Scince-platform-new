@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقرير المحقق العلمي</title>
+<style>
+:root{
+  --bg:#071326;--panel:#102746;--panel2:#0c203b;--line:#2f5f90;
+  --blue:#2c6da8;--gold:#e5ae3d;--teal:#20a896;--red:#c9464e;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:#fff;
+  font-family:Tahoma,"Segoe UI",Arial,sans-serif
+}
+.wrap{max-width:1350px;margin:auto;padding:18px}
+.header{
+  display:flex;gap:14px;align-items:center;
+  background:linear-gradient(135deg,#123158,#0c203b);
+  border:1px solid var(--line);border-radius:18px;padding:16px
+}
+.logo{
+  width:82px;height:82px;border-radius:16px;background:#fff;
+  color:#123158;display:flex;align-items:center;justify-content:center;
+  font-size:33px;font-weight:900;flex:0 0 auto
+}
+.header h1{margin:0;font-size:30px}
+.header p{margin:6px 0 0;color:#d9e6f7;font-weight:700}
+.card{
+  margin-top:15px;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;padding:16px
+}
+.setup{display:grid;grid-template-columns:2fr 1fr auto;gap:10px}
+.setup input,.toolbar input,.toolbar select{
+  width:100%;border:1px solid #4776a7;border-radius:10px;
+  padding:11px;background:#0b1f3a;color:#fff;font-weight:800
+}
+.btn{
+  border:1px solid #4776a7;border-radius:10px;padding:10px 14px;
+  background:#1a4779;color:#fff;font-weight:900;cursor:pointer
+}
+.btn.gold{background:#d6a036;color:#201704;border-color:#e7be64}
+.btn.danger{background:#8b2730;border-color:#d75b65}
+.btn.danger:hover{background:#a52e39}
+.actions{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric{
+  background:var(--panel2);border:1px solid #315c88;border-radius:14px;
+  padding:14px;text-align:center
+}
+.metric b{display:block;font-size:28px;color:#ffd56b;margin-top:4px}
+.toolbar{
+  display:grid;grid-template-columns:1.5fr 1fr 1fr auto auto auto;
+  gap:8px;align-items:center
+}
+.tablewrap{overflow:auto;border-radius:12px;border:1px solid var(--line)}
+.table{width:100%;border-collapse:collapse;min-width:1180px}
+.table th,.table td{
+  padding:10px;border-bottom:1px solid #24476a;text-align:center;font-size:14px
+}
+.table th{background:#0b1f3a;position:sticky;top:0}
+.table td.name{text-align:right;font-weight:900}
+.level{font-weight:900}
+.excellent{color:#92f1bd}.verygood{color:#c0ecff}.good{color:#ffe79f}
+.pass{color:#ffc890}.support{color:#ff9ca3}
+.empty{padding:25px;text-align:center;color:#cbd9ed;font-weight:800}
+.modal{
+  display:none;position:fixed;inset:0;background:#000b;z-index:20;
+  padding:20px;overflow:auto
+}
+.modal.open{display:block}
+.modalbox{
+  max-width:900px;margin:25px auto;background:var(--panel);
+  border:1px solid #3c6c9d;border-radius:18px;padding:18px
+}
+.answer{
+  background:#0b1f3a;border:1px solid #294e75;border-radius:10px;
+  padding:9px;margin:6px 0
+}
+.ok{border-right:5px solid var(--teal)}
+.bad{border-right:5px solid var(--red)}
+.small{font-size:13px;color:#c5d5ea}
+.error{color:#ffb3b7;font-weight:900;margin-top:8px}
+.success{color:#92f1bd;font-weight:900;margin-top:8px}
+@media(max-width:850px){
+  .setup,.toolbar{grid-template-columns:1fr}
+  .summary{grid-template-columns:repeat(2,1fr)}
+  .header h1{font-size:24px}.logo{width:68px;height:68px;font-size:27px}
+  .btn{padding:10px 11px}
+}
+@media print{
+  .setup,.toolbar,.btn,.modal{display:none!important}
+  .card{border:none}.wrap{max-width:none}
+  .table th,.table td{color:#000;border:1px solid #aaa}
+  body{background:#fff;color:#000}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="logo">علوم</div>
+    <div>
+      <h1>تقرير المحقق العلمي</h1>
+      <p>مدرسة أبي الدرداء المتوسطة — مركز نتائج العلوم</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="setup">
+      <input id="api" placeholder="رابط Google Apps Script Web App">
+      <input id="key" placeholder="رمز تقرير المعلم">
+      <button class="btn gold" id="load">تحميل النتائج</button>
+    </div>
+    <div class="small" style="margin-top:8px">
+      يُحفظ رابط التقرير والرمز على جهاز المعلم فقط. لا تشارك رمز التقرير مع الطلاب.
+    </div>
+    <div id="err" class="error"></div>
+    <div id="msg" class="success"></div>
+  </div>
+
+  <div class="card summary">
+    <div class="metric">عدد المشاركات<b id="count">0</b></div>
+    <div class="metric">متوسط الأداء<b id="avg">0%</b></div>
+    <div class="metric">ممتاز<b id="excellent">0</b></div>
+    <div class="metric">يحتاج دعمًا<b id="support">0</b></div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <input id="search" placeholder="ابحث باسم الطالب">
+      <select id="classFilter">
+        <option value="">كل الفصول</option>
+        <option>1/1</option><option>2/1</option><option>3/1</option><option>4/1</option>
+      </select>
+      <select id="activityFilter">
+        <option value="">كل الأنشطة</option>
+        <option value="1">النشاط 1</option><option value="2">النشاط 2</option>
+        <option value="3">النشاط 3</option><option value="4">النشاط 4</option>
+        <option value="5">النشاط 5</option>
+      </select>
+      <label style="font-size:13px">
+        <input id="latestOnly" type="checkbox" checked> أحدث محاولة لكل طالب
+      </label>
+      <button class="btn" id="export">تصدير CSV</button>
+      <button class="btn" onclick="window.print()">طباعة</button>
+    </div>
+  </div>
+
+  <div class="card tablewrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th><th>الطالب</th><th>الفصل</th><th>النشاط المخصص</th>
+          <th>الدرجة</th><th>النسبة</th><th>المستوى</th><th>المدة</th>
+          <th>وقت التسليم</th><th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table>
+    <div id="empty" class="empty">لم يتم تحميل بيانات بعد.</div>
+  </div>
+
+</div>
+
+<div class="modal" id="modal">
+  <div class="modalbox">
+    <button class="btn" id="close">إغلاق</button>
+    <h2 id="detailTitle"></h2>
+    <div id="detailMeta" class="small"></div>
+    <div id="details"></div>
+  </div>
+</div>
+
+<script>
+let all=[];
+const $=id=>document.getElementById(id);
+const params=new URLSearchParams(location.search);
+
+const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbz6-iPHp20-ZWMhgZA6WsAnZM-WPoCgPgFMyjbAHwg6xvGPGZhMDluhqOZGd20I6InDuw/exec';
+$('api').value=params.get('api')||localStorage.getItem('inv_api')||DEFAULT_API_URL;
+$('key').value=localStorage.getItem('inv_report_key')||'';
+
+function cls(p){
+  return p>=90?'excellent':p>=80?'verygood':p>=70?'good':p>=60?'pass':'support'
+}
+function secs(s){
+  s=+s||0;
+  const m=Math.floor(s/60),r=s%60;
+  return m?`${m}د ${r}ث`:`${r}ث`
+}
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g,m=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]))
+}
+
+function jsonp(url,onSuccess,onError){
+  const cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+  const script=document.createElement('script');
+  window[cb]=data=>{
+    delete window[cb];
+    script.remove();
+    onSuccess(data);
+  };
+  script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb);
+  script.onerror=()=>{
+    delete window[cb];
+    script.remove();
+    if(onError)onError();
+  };
+  document.body.appendChild(script);
+}
+
+function load(){
+  const api=$('api').value.trim(),key=$('key').value.trim();
+  if(!api||!key){
+    $('err').textContent='أدخل رابط Apps Script ورمز التقرير.';
+    return;
+  }
+  $('err').textContent='';
+  $('msg').textContent='';
+  localStorage.setItem('inv_api',api);
+  localStorage.setItem('inv_report_key',key);
+
+  const url=api+(api.includes('?')?'&':'?')
+    +'action=list&key='+encodeURIComponent(key);
+
+  jsonp(url,data=>{
+    if(!data||data.ok===false){
+      $('err').textContent=data?.error||'تعذر تحميل النتائج.';
+      return;
+    }
+    all=data.rows||[];
+    render();
+  },()=>{
+    $('err').textContent='تعذر الاتصال بخادم النتائج.';
+  });
+}
+
+function rows(){
+  let a=[...all];
+
+  if($('latestOnly').checked){
+    const m=new Map();
+    a.forEach(r=>{
+      const k=(r.className+'|'+r.studentName).toLowerCase();
+      const old=m.get(k);
+      if(!old||new Date(r.submittedAt)>new Date(old.submittedAt))m.set(k,r);
+    });
+    a=[...m.values()];
+  }
+
+  const q=$('search').value.trim().toLowerCase();
+  const cf=$('classFilter').value;
+  const af=$('activityFilter').value;
+
+  if(q)a=a.filter(r=>String(r.studentName).toLowerCase().includes(q));
+  if(cf)a=a.filter(r=>r.className===cf);
+  if(af)a=a.filter(r=>String(r.assignedCaseNo)===af);
+
+  return a.sort((x,y)=>new Date(y.submittedAt)-new Date(x.submittedAt));
+}
+
+function render(){
+  const a=rows();
+
+  $('count').textContent=a.length;
+  const avg=a.length
+    ?Math.round(a.reduce((s,r)=>s+(+r.percentage||0),0)/a.length):0;
+  $('avg').textContent=avg+'%';
+  $('excellent').textContent=a.filter(r=>(+r.percentage||0)>=90).length;
+  $('support').textContent=a.filter(r=>(+r.percentage||0)<60).length;
+
+  $('body').innerHTML=a.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td class="name">${esc(r.studentName)}</td>
+      <td>${esc(r.className)}</td>
+      <td>
+        <b>نشاط ${esc(r.assignedCaseNo||'—')}</b><br>
+        <span class="small">${esc(r.assignedCaseTitle||'')}</span>
+      </td>
+      <td>${esc(r.score)}/${esc(r.maxScore)}</td>
+      <td>${esc(r.percentage)}%</td>
+      <td class="level ${cls(+r.percentage)}">${esc(r.level)}</td>
+      <td>${secs(r.durationSec)}</td>
+      <td>${esc(r.submittedAtLocal||r.submittedAt)}</td>
+      <td>
+        <div class="actions">
+          <button class="btn" data-detail="${esc(r.submissionId)}">عرض</button>
+          <button class="btn danger" data-delete="${esc(r.submissionId)}">
+            إتاحة إعادة المحاولة
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  $('empty').style.display=a.length?'none':'block';
+
+  document.querySelectorAll('[data-detail]').forEach(
+    b=>b.onclick=()=>detail(b.dataset.detail)
+  );
+  document.querySelectorAll('[data-delete]').forEach(
+    b=>b.onclick=()=>deleteSubmission(b.dataset.delete)
+  );
+}
+
+function detail(id){
+  const r=all.find(x=>x.submissionId===id);
+  if(!r)return;
+
+  $('detailTitle').textContent=r.studentName+' — '+r.className;
+  $('detailMeta').textContent=
+    `النشاط ${r.assignedCaseNo||'—'}: ${r.assignedCaseTitle||''} — `
+    +`الدرجة ${r.score}/${r.maxScore} — ${r.percentage}% — `
+    +`${r.level} — المدة ${secs(r.durationSec)}`;
+
+  let ans=[];
+  try{
+    ans=typeof r.answers==='string'?JSON.parse(r.answers):r.answers||[];
+  }catch(e){}
+
+  $('details').innerHTML=ans.map(c=>`
+    <h3>${esc(c.caseTitle)}</h3>
+    ${['q1','q2','q3','q4','verdict','q5reason','q6choice','q6reason'].map(k=>{
+      const a=c[k];
+      if(!a)return'';
+      return `<div class="answer ${a.correct?'ok':'bad'}">
+        <b>${k}</b>: ${esc(a.text)} <span>${a.correct?'✓':'✗'}</span>
+      </div>`;
+    }).join('')}
+    ${c.reflection?`<div class="answer">
+      <b>ملاحظة الطالب:</b> ${esc(c.reflection)}
+    </div>`:''}
+  `).join('');
+
+  $('modal').classList.add('open');
+}
+
+function deleteSubmission(id){
+  const r=all.find(x=>x.submissionId===id);
+  if(!r)return;
+
+  const ok=confirm(
+    `هل تريد حذف مشاركة الطالب «${r.studentName}» وإتاحة إعادة المحاولة له؟\n\n`
+    +'سيتم حذف النتيجة الحالية من سجل النتائج.'
+  );
+  if(!ok)return;
+
+  const api=$('api').value.trim(),key=$('key').value.trim();
+  if(!api||!key){
+    $('err').textContent='أدخل رابط Apps Script ورمز التقرير.';
+    return;
+  }
+
+  $('err').textContent='';
+  $('msg').textContent='جارٍ حذف المشاركة...';
+
+  const url=api+(api.includes('?')?'&':'?')
+    +'action=delete&key='+encodeURIComponent(key)
+    +'&submissionId='+encodeURIComponent(id);
+
+  jsonp(url,data=>{
+    if(!data||data.ok===false){
+      $('msg').textContent='';
+      $('err').textContent=data?.error||data?.message||'تعذر حذف المشاركة.';
+      return;
+    }
+
+    $('msg').textContent='✓ تم حذف المشاركة. يستطيع الطالب الآن إعادة المحاولة.';
+    all=all.filter(x=>x.submissionId!==id);
+    render();
+
+    setTimeout(load,700);
+  },()=>{
+    $('msg').textContent='';
+    $('err').textContent='تعذر الاتصال بخادم النتائج.';
+  });
+}
+
+function csv(){
+  const a=rows();
+  const head=[
+    'الطالب','الفصل','رقم النشاط','اسم النشاط','الدرجة','من',
+    'النسبة','المستوى','المدة بالثواني','وقت التسليم'
+  ];
+
+  const lines=[
+    head,
+    ...a.map(r=>[
+      r.studentName,r.className,r.assignedCaseNo,r.assignedCaseTitle,
+      r.score,r.maxScore,r.percentage,r.level,r.durationSec,
+      r.submittedAtLocal||r.submittedAt
+    ])
+  ].map(row=>row.map(v=>
+    '"'+String(v??'').replace(/"/g,'""')+'"'
+  ).join(','));
+
+  const blob=new Blob(
+    ['\ufeff'+lines.join('\r\n')],
+    {type:'text/csv;charset=utf-8'}
+  );
+
+  const u=URL.createObjectURL(blob);
+  const ael=document.createElement('a');
+  ael.href=u;
+  ael.download='تقرير-أداء-المحقق-العلمي.csv';
+  ael.click();
+  setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+
+$('load').onclick=load;
+$('search').oninput=render;
+$('classFilter').onchange=render;
+$('activityFilter').onchange=render;
+$('latestOnly').onchange=render;
+$('export').onclick=csv;
+$('close').onclick=()=>$('modal').classList.remove('open');
+$('modal').onclick=e=>{
+  if(e.target===$('modal'))$('modal').classList.remove('open')
+};
+
+if($('api').value&&$('key').value)load();
+</script>
+</body>
+</html>
