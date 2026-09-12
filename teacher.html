@@ -7,79 +7,41 @@
 <style>
 :root{
   --bg:#071326;--panel:#102746;--panel2:#0c203b;--line:#2f5f90;
-  --blue:#2c6da8;--gold:#e5ae3d;--teal:#20a896;--red:#c9464e;
+  --blue:#2c6da8;--gold:#e5ae3d;--teal:#20a896;--red:#c9464e
 }
 *{box-sizing:border-box}
-body{
-  margin:0;background:var(--bg);color:#fff;
-  font-family:Tahoma,"Segoe UI",Arial,sans-serif
-}
+body{margin:0;background:var(--bg);color:#fff;font-family:Tahoma,"Segoe UI",Arial,sans-serif}
 .wrap{max-width:1350px;margin:auto;padding:18px}
-.header{
-  display:flex;gap:14px;align-items:center;
-  background:linear-gradient(135deg,#123158,#0c203b);
-  border:1px solid var(--line);border-radius:18px;padding:16px
-}
-.logo{
-  width:82px;height:82px;border-radius:16px;background:#fff;
-  color:#123158;display:flex;align-items:center;justify-content:center;
-  font-size:33px;font-weight:900;flex:0 0 auto
-}
+.header{display:flex;gap:14px;align-items:center;background:linear-gradient(135deg,#123158,#0c203b);border:1px solid var(--line);border-radius:18px;padding:16px}
+.logo{width:82px;height:82px;border-radius:16px;background:#fff;color:#123158;display:flex;align-items:center;justify-content:center;font-size:33px;font-weight:900;flex:0 0 auto}
 .header h1{margin:0;font-size:30px}
 .header p{margin:6px 0 0;color:#d9e6f7;font-weight:700}
-.card{
-  margin-top:15px;background:var(--panel);border:1px solid var(--line);
-  border-radius:16px;padding:16px
-}
+.card{margin-top:15px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
 .setup{display:grid;grid-template-columns:2fr 1fr auto;gap:10px}
-.setup input,.toolbar input,.toolbar select{
-  width:100%;border:1px solid #4776a7;border-radius:10px;
-  padding:11px;background:#0b1f3a;color:#fff;font-weight:800
-}
-.btn{
-  border:1px solid #4776a7;border-radius:10px;padding:10px 14px;
-  background:#1a4779;color:#fff;font-weight:900;cursor:pointer
-}
+.setup input,.toolbar input,.toolbar select{width:100%;border:1px solid #4776a7;border-radius:10px;padding:11px;background:#0b1f3a;color:#fff;font-weight:800}
+.btn{border:1px solid #4776a7;border-radius:10px;padding:10px 14px;background:#1a4779;color:#fff;font-weight:900;cursor:pointer}
 .btn.gold{background:#d6a036;color:#201704;border-color:#e7be64}
 .btn.danger{background:#8b2730;border-color:#d75b65}
 .btn.danger:hover{background:#a52e39}
 .actions{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.metric{
-  background:var(--panel2);border:1px solid #315c88;border-radius:14px;
-  padding:14px;text-align:center
-}
+.metric{background:var(--panel2);border:1px solid #315c88;border-radius:14px;padding:14px;text-align:center}
 .metric b{display:block;font-size:28px;color:#ffd56b;margin-top:4px}
-.toolbar{
-  display:grid;grid-template-columns:1.5fr 1fr 1fr auto auto auto;
-  gap:8px;align-items:center
-}
+.toolbar{display:grid;grid-template-columns:1.5fr 1fr 1fr auto auto auto;gap:8px;align-items:center}
+.sort-note{margin-top:10px;color:#a9f0df;font-weight:800;font-size:13px}
 .tablewrap{overflow:auto;border-radius:12px;border:1px solid var(--line)}
 .table{width:100%;border-collapse:collapse;min-width:1180px}
-.table th,.table td{
-  padding:10px;border-bottom:1px solid #24476a;text-align:center;font-size:14px
-}
+.table th,.table td{padding:10px;border-bottom:1px solid #24476a;text-align:center;font-size:14px}
 .table th{background:#0b1f3a;position:sticky;top:0}
 .table td.name{text-align:right;font-weight:900}
 .level{font-weight:900}
-.excellent{color:#92f1bd}.verygood{color:#c0ecff}.good{color:#ffe79f}
-.pass{color:#ffc890}.support{color:#ff9ca3}
+.excellent{color:#92f1bd}.verygood{color:#c0ecff}.good{color:#ffe79f}.pass{color:#ffc890}.support{color:#ff9ca3}
 .empty{padding:25px;text-align:center;color:#cbd9ed;font-weight:800}
-.modal{
-  display:none;position:fixed;inset:0;background:#000b;z-index:20;
-  padding:20px;overflow:auto
-}
+.modal{display:none;position:fixed;inset:0;background:#000b;z-index:20;padding:20px;overflow:auto}
 .modal.open{display:block}
-.modalbox{
-  max-width:900px;margin:25px auto;background:var(--panel);
-  border:1px solid #3c6c9d;border-radius:18px;padding:18px
-}
-.answer{
-  background:#0b1f3a;border:1px solid #294e75;border-radius:10px;
-  padding:9px;margin:6px 0
-}
-.ok{border-right:5px solid var(--teal)}
-.bad{border-right:5px solid var(--red)}
+.modalbox{max-width:900px;margin:25px auto;background:var(--panel);border:1px solid #3c6c9d;border-radius:18px;padding:18px}
+.answer{background:#0b1f3a;border:1px solid #294e75;border-radius:10px;padding:9px;margin:6px 0}
+.ok{border-right:5px solid var(--teal)}.bad{border-right:5px solid var(--red)}
 .small{font-size:13px;color:#c5d5ea}
 .error{color:#ffb3b7;font-weight:900;margin-top:8px}
 .success{color:#92f1bd;font-weight:900;margin-top:8px}
@@ -90,7 +52,7 @@ body{
   .btn{padding:10px 11px}
 }
 @media print{
-  .setup,.toolbar,.btn,.modal{display:none!important}
+  .setup,.toolbar,.sort-note,.btn,.modal{display:none!important}
   .card{border:none}.wrap{max-width:none}
   .table th,.table td{color:#000;border:1px solid #aaa}
   body{background:#fff;color:#000}
@@ -99,7 +61,6 @@ body{
 </head>
 <body>
 <div class="wrap">
-
   <div class="header">
     <div class="logo">علوم</div>
     <div>
@@ -114,9 +75,7 @@ body{
       <input id="key" placeholder="رمز تقرير المعلم">
       <button class="btn gold" id="load">تحميل النتائج</button>
     </div>
-    <div class="small" style="margin-top:8px">
-      يُحفظ رابط التقرير والرمز على جهاز المعلم فقط. لا تشارك رمز التقرير مع الطلاب.
-    </div>
+    <div class="small" style="margin-top:8px">يُحفظ رابط التقرير والرمز على جهاز المعلم فقط. لا تشارك رمز التقرير مع الطلاب.</div>
     <div id="err" class="error"></div>
     <div id="msg" class="success"></div>
   </div>
@@ -141,12 +100,11 @@ body{
         <option value="3">النشاط 3</option><option value="4">النشاط 4</option>
         <option value="5">النشاط 5</option>
       </select>
-      <label style="font-size:13px">
-        <input id="latestOnly" type="checkbox" checked> أحدث محاولة لكل طالب
-      </label>
+      <label style="font-size:13px"><input id="latestOnly" type="checkbox" checked> أحدث محاولة لكل طالب</label>
       <button class="btn" id="export">تصدير CSV</button>
       <button class="btn" onclick="window.print()">طباعة</button>
     </div>
+    <div class="sort-note">✓ ترتيب النتائج تلقائيًا: 1/1 ← 2/1 ← 3/1 ← 4/1، وداخل كل فصل حسب الاسم أبجديًا.</div>
   </div>
 
   <div class="card tablewrap">
@@ -162,7 +120,6 @@ body{
     </table>
     <div id="empty" class="empty">لم يتم تحميل بيانات بعد.</div>
   </div>
-
 </div>
 
 <div class="modal" id="modal">
@@ -178,14 +135,15 @@ body{
 let all=[];
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
-
 const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbz6-iPHp20-ZWMhgZA6WsAnZM-WPoCgPgFMyjbAHwg6xvGPGZhMDluhqOZGd20I6InDuw/exec';
+
 $('api').value=params.get('api')||localStorage.getItem('inv_api')||DEFAULT_API_URL;
 $('key').value=localStorage.getItem('inv_report_key')||'';
 
-function cls(p){
-  return p>=90?'excellent':p>=80?'verygood':p>=70?'good':p>=60?'pass':'support'
-}
+const CLASS_ORDER={'1/1':1,'2/1':2,'3/1':3,'4/1':4};
+const AR_COLLATOR=new Intl.Collator('ar',{sensitivity:'base',numeric:true,ignorePunctuation:true});
+
+function cls(p){return p>=90?'excellent':p>=80?'verygood':p>=70?'good':p>=60?'pass':'support'}
 function secs(s){
   s=+s||0;
   const m=Math.floor(s/60),r=s%60;
@@ -196,24 +154,41 @@ function esc(s){
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[m]))
 }
+function normalizedName(s){
+  return String(s||'')
+    .normalize('NFKD')
+    .replace(/[\u064B-\u065F\u0670]/g,'')
+    .replace(/[أإآ]/g,'ا')
+    .replace(/ى/g,'ي')
+    .trim();
+}
+function sortResults(a){
+  return a.sort((x,y)=>{
+    const cx=CLASS_ORDER[String(x.className)]??999;
+    const cy=CLASS_ORDER[String(y.className)]??999;
+    if(cx!==cy)return cx-cy;
 
+    const byName=AR_COLLATOR.compare(
+      normalizedName(x.studentName),
+      normalizedName(y.studentName)
+    );
+    if(byName!==0)return byName;
+
+    return new Date(y.submittedAt||0)-new Date(x.submittedAt||0);
+  });
+}
 function jsonp(url,onSuccess,onError){
   const cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*100000);
   const script=document.createElement('script');
   window[cb]=data=>{
-    delete window[cb];
-    script.remove();
-    onSuccess(data);
+    delete window[cb];script.remove();onSuccess(data);
   };
   script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb);
   script.onerror=()=>{
-    delete window[cb];
-    script.remove();
-    if(onError)onError();
+    delete window[cb];script.remove();if(onError)onError();
   };
   document.body.appendChild(script);
 }
-
 function load(){
   const api=$('api').value.trim(),key=$('key').value.trim();
   if(!api||!key){
@@ -225,9 +200,7 @@ function load(){
   localStorage.setItem('inv_api',api);
   localStorage.setItem('inv_report_key',key);
 
-  const url=api+(api.includes('?')?'&':'?')
-    +'action=list&key='+encodeURIComponent(key);
-
+  const url=api+(api.includes('?')?'&':'?')+'action=list&key='+encodeURIComponent(key);
   jsonp(url,data=>{
     if(!data||data.ok===false){
       $('err').textContent=data?.error||'تعذر تحميل النتائج.';
@@ -235,18 +208,15 @@ function load(){
     }
     all=data.rows||[];
     render();
-  },()=>{
-    $('err').textContent='تعذر الاتصال بخادم النتائج.';
-  });
+  },()=>{$('err').textContent='تعذر الاتصال بخادم النتائج.';});
 }
-
 function rows(){
   let a=[...all];
 
   if($('latestOnly').checked){
     const m=new Map();
     a.forEach(r=>{
-      const k=(r.className+'|'+r.studentName).toLowerCase();
+      const k=(String(r.className)+'|'+String(r.studentName)).toLowerCase();
       const old=m.get(k);
       if(!old||new Date(r.submittedAt)>new Date(old.submittedAt))m.set(k,r);
     });
@@ -261,15 +231,13 @@ function rows(){
   if(cf)a=a.filter(r=>r.className===cf);
   if(af)a=a.filter(r=>String(r.assignedCaseNo)===af);
 
-  return a.sort((x,y)=>new Date(y.submittedAt)-new Date(x.submittedAt));
+  return sortResults(a);
 }
-
 function render(){
   const a=rows();
 
   $('count').textContent=a.length;
-  const avg=a.length
-    ?Math.round(a.reduce((s,r)=>s+(+r.percentage||0),0)/a.length):0;
+  const avg=a.length?Math.round(a.reduce((s,r)=>s+(+r.percentage||0),0)/a.length):0;
   $('avg').textContent=avg+'%';
   $('excellent').textContent=a.filter(r=>(+r.percentage||0)>=90).length;
   $('support').textContent=a.filter(r=>(+r.percentage||0)<60).length;
@@ -279,10 +247,7 @@ function render(){
       <td>${i+1}</td>
       <td class="name">${esc(r.studentName)}</td>
       <td>${esc(r.className)}</td>
-      <td>
-        <b>نشاط ${esc(r.assignedCaseNo||'—')}</b><br>
-        <span class="small">${esc(r.assignedCaseTitle||'')}</span>
-      </td>
+      <td><b>نشاط ${esc(r.assignedCaseNo||'—')}</b><br><span class="small">${esc(r.assignedCaseTitle||'')}</span></td>
       <td>${esc(r.score)}/${esc(r.maxScore)}</td>
       <td>${esc(r.percentage)}%</td>
       <td class="level ${cls(+r.percentage)}">${esc(r.level)}</td>
@@ -291,9 +256,7 @@ function render(){
       <td>
         <div class="actions">
           <button class="btn" data-detail="${esc(r.submissionId)}">عرض</button>
-          <button class="btn danger" data-delete="${esc(r.submissionId)}">
-            إتاحة إعادة المحاولة
-          </button>
+          <button class="btn danger" data-delete="${esc(r.submissionId)}">إتاحة إعادة المحاولة</button>
         </div>
       </td>
     </tr>
@@ -301,14 +264,9 @@ function render(){
 
   $('empty').style.display=a.length?'none':'block';
 
-  document.querySelectorAll('[data-detail]').forEach(
-    b=>b.onclick=()=>detail(b.dataset.detail)
-  );
-  document.querySelectorAll('[data-delete]').forEach(
-    b=>b.onclick=()=>deleteSubmission(b.dataset.delete)
-  );
+  document.querySelectorAll('[data-detail]').forEach(b=>b.onclick=()=>detail(b.dataset.detail));
+  document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>deleteSubmission(b.dataset.delete));
 }
-
 function detail(id){
   const r=all.find(x=>x.submissionId===id);
   if(!r)return;
@@ -320,27 +278,20 @@ function detail(id){
     +`${r.level} — المدة ${secs(r.durationSec)}`;
 
   let ans=[];
-  try{
-    ans=typeof r.answers==='string'?JSON.parse(r.answers):r.answers||[];
-  }catch(e){}
+  try{ans=typeof r.answers==='string'?JSON.parse(r.answers):r.answers||[];}catch(e){}
 
   $('details').innerHTML=ans.map(c=>`
     <h3>${esc(c.caseTitle)}</h3>
     ${['q1','q2','q3','q4','verdict','q5reason','q6choice','q6reason'].map(k=>{
       const a=c[k];
       if(!a)return'';
-      return `<div class="answer ${a.correct?'ok':'bad'}">
-        <b>${k}</b>: ${esc(a.text)} <span>${a.correct?'✓':'✗'}</span>
-      </div>`;
+      return `<div class="answer ${a.correct?'ok':'bad'}"><b>${k}</b>: ${esc(a.text)} <span>${a.correct?'✓':'✗'}</span></div>`;
     }).join('')}
-    ${c.reflection?`<div class="answer">
-      <b>ملاحظة الطالب:</b> ${esc(c.reflection)}
-    </div>`:''}
+    ${c.reflection?`<div class="answer"><b>ملاحظة الطالب:</b> ${esc(c.reflection)}</div>`:''}
   `).join('');
 
   $('modal').classList.add('open');
 }
-
 function deleteSubmission(id){
   const r=all.find(x=>x.submissionId===id);
   if(!r)return;
@@ -370,24 +321,18 @@ function deleteSubmission(id){
       $('err').textContent=data?.error||data?.message||'تعذر حذف المشاركة.';
       return;
     }
-
     $('msg').textContent='✓ تم حذف المشاركة. يستطيع الطالب الآن إعادة المحاولة.';
     all=all.filter(x=>x.submissionId!==id);
     render();
-
     setTimeout(load,700);
   },()=>{
     $('msg').textContent='';
     $('err').textContent='تعذر الاتصال بخادم النتائج.';
   });
 }
-
 function csv(){
   const a=rows();
-  const head=[
-    'الطالب','الفصل','رقم النشاط','اسم النشاط','الدرجة','من',
-    'النسبة','المستوى','المدة بالثواني','وقت التسليم'
-  ];
+  const head=['الطالب','الفصل','رقم النشاط','اسم النشاط','الدرجة','من','النسبة','المستوى','المدة بالثواني','وقت التسليم'];
 
   const lines=[
     head,
@@ -396,15 +341,9 @@ function csv(){
       r.score,r.maxScore,r.percentage,r.level,r.durationSec,
       r.submittedAtLocal||r.submittedAt
     ])
-  ].map(row=>row.map(v=>
-    '"'+String(v??'').replace(/"/g,'""')+'"'
-  ).join(','));
+  ].map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(','));
 
-  const blob=new Blob(
-    ['\ufeff'+lines.join('\r\n')],
-    {type:'text/csv;charset=utf-8'}
-  );
-
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
   const u=URL.createObjectURL(blob);
   const ael=document.createElement('a');
   ael.href=u;
@@ -420,9 +359,7 @@ $('activityFilter').onchange=render;
 $('latestOnly').onchange=render;
 $('export').onclick=csv;
 $('close').onclick=()=>$('modal').classList.remove('open');
-$('modal').onclick=e=>{
-  if(e.target===$('modal'))$('modal').classList.remove('open')
-};
+$('modal').onclick=e=>{if(e.target===$('modal'))$('modal').classList.remove('open')};
 
 if($('api').value&&$('key').value)load();
 </script>
