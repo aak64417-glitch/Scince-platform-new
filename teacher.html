@@ -51,41 +51,22 @@ body{margin:0;background:var(--bg);color:#fff;font-family:Tahoma,"Segoe UI",Aria
   .header h1{font-size:24px}.logo{width:68px;height:68px;font-size:27px}
   .btn{padding:10px 11px}
 }
-@page{size:A4 landscape;margin:10mm}
+@page{size:A4 portrait;margin:8mm}
 @media print{
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  body{background:#fff!important;color:#172033!important;font-family:Tahoma,"Segoe UI",Arial,sans-serif}
-  .wrap{max-width:none!important;padding:0!important}
-  .setup,.toolbar,.sort-note,.btn,.modal,.card:has(.setup){display:none!important}
-  .header{display:flex!important;align-items:center!important;gap:12px!important;background:linear-gradient(135deg,#123158,#1d527f)!important;border:0!important;border-radius:14px!important;padding:12px 16px!important;margin:0 0 10px!important;color:#fff!important;box-shadow:none!important}
-  .logo{width:62px!important;height:62px!important;border-radius:12px!important;background:#fff!important;color:#123158!important;font-size:24px!important}
-  .header h1{font-size:23px!important;margin:0!important;color:#fff!important}
-  .header p{font-size:12px!important;color:#eaf3ff!important;margin-top:4px!important}
-  .card{margin-top:9px!important;padding:0!important;background:#fff!important;border:0!important;border-radius:0!important}
-  .summary{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:7px!important;margin:0 0 10px!important}
-  .metric{background:#f4f8fc!important;border:1px solid #b8cbe0!important;border-radius:10px!important;padding:7px!important;color:#25364d!important;font-size:11px!important}
-  .metric b{font-size:20px!important;color:#9a6a00!important;margin-top:2px!important}
-  .tablewrap{overflow:visible!important;border:1px solid #aebdcd!important;border-radius:9px!important}
-  .table{width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important}
-  .table thead{display:table-header-group!important}
-  .table tr{break-inside:avoid!important;page-break-inside:avoid!important}
-  .table th{position:static!important;background:#123f68!important;color:#fff!important;font-size:9.5px!important;font-weight:900!important;padding:6px 4px!important;border:1px solid #7893ad!important}
-  .table td{color:#172033!important;background:#fff!important;border:1px solid #c3ced9!important;padding:5px 4px!important;font-size:9px!important;line-height:1.35!important;vertical-align:middle!important}
-  .table tbody tr:nth-child(even) td{background:#f7f9fc!important}
-  .table td.name{text-align:right!important;font-weight:900!important}
-  .table th:nth-child(1),.table td:nth-child(1){width:4%}
-  .table th:nth-child(2),.table td:nth-child(2){width:17%}
-  .table th:nth-child(3),.table td:nth-child(3){width:7%}
-  .table th:nth-child(4),.table td:nth-child(4){width:19%}
-  .table th:nth-child(5),.table td:nth-child(5){width:7%}
-  .table th:nth-child(6),.table td:nth-child(6){width:7%}
-  .table th:nth-child(7),.table td:nth-child(7){width:9%}
-  .table th:nth-child(8),.table td:nth-child(8){width:8%}
-  .table th:nth-child(9),.table td:nth-child(9){width:22%}
-  .table th:nth-child(10),.table td:nth-child(10){display:none!important}
-  .small{font-size:8px!important;color:#52667c!important}
-  .excellent{color:#08783f!important}.verygood{color:#006a8e!important}.good{color:#8a6500!important}.pass{color:#a34e00!important}.support{color:#b4232d!important}
-  .empty{color:#52667c!important}
+*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+html,body{background:#fff!important;color:#14263b!important}.wrap{max-width:none!important;padding:0!important}
+.setup,.toolbar,.sort-note,.btn,.modal,.card:has(.setup){display:none!important}
+.header{position:relative!important;display:flex!important;align-items:center!important;gap:14px!important;padding:14px 18px!important;margin:0 0 9px!important;background:linear-gradient(135deg,#073a63,#0b5f86)!important;color:#fff!important;border:0!important;border-radius:16px!important}
+.header:after{content:"1448 هـ";position:absolute;left:18px;top:17px;background:#e8b84b;color:#17334d;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:900}
+.logo{width:58px!important;height:58px!important;border-radius:14px!important;background:#fff!important;color:#0b5277!important;font-size:20px!important;border:2px solid #e8b84b!important}
+.header h1{font-size:23px!important;margin:0!important;color:#fff!important}.header p{font-size:11px!important;margin:4px 0 0!important;color:#eaf7ff!important}
+.card{background:#fff!important;border:0!important;padding:0!important;margin-top:8px!important}.summary{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:6px!important;margin-bottom:9px!important}
+.metric{background:#f3f8fc!important;border:1px solid #9fc4d8!important;border-radius:12px!important;padding:7px 5px!important;color:#38536a!important;font-size:10px!important}.metric b{font-size:19px!important;color:#0b5277!important;margin-top:1px!important}
+.tablewrap{overflow:visible!important;border:0!important}.table{width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important}.table thead{display:table-header-group!important}.table tr{break-inside:avoid!important;page-break-inside:avoid!important}
+.table th{position:static!important;background:#0b5277!important;color:#fff!important;font-size:10.5px!important;padding:7px 4px!important;border:1px solid #5b91ae!important;border-bottom:2px solid #e8b84b!important}.table td{font-size:10.5px!important;line-height:1.35!important;padding:7px 4px!important;color:#1a2b3b!important;background:#fff!important;border:1px solid #d8e3ea!important;vertical-align:middle!important}.table tbody tr:nth-child(even) td{background:#f6fafc!important}.table td.name{text-align:right!important;font-weight:900!important;color:#0b3552!important}
+.table th:nth-child(1),.table td:nth-child(1){width:6%!important}.table th:nth-child(2),.table td:nth-child(2){width:31%!important}.table th:nth-child(3),.table td:nth-child(3){width:10%!important}.table th:nth-child(4),.table td:nth-child(4){width:24%!important}.table th:nth-child(5),.table td:nth-child(5){width:10%!important}.table th:nth-child(6),.table td:nth-child(6){width:9%!important}.table th:nth-child(7),.table td:nth-child(7){width:10%!important}
+.table th:nth-child(8),.table td:nth-child(8),.table th:nth-child(9),.table td:nth-child(9),.table th:nth-child(10),.table td:nth-child(10){display:none!important}.small{font-size:8px!important;color:#617486!important}.excellent{color:#08783f!important}.verygood{color:#006a8e!important}.good{color:#8a6500!important}.pass{color:#a34e00!important}.support{color:#b4232d!important}
+.tablewrap:after{content:"مدرسة أبي الدرداء المتوسطة  •  معلم المادة: علي طاهر البقاشي  •  مدير المدرسة: فوزي محمد الهلال";display:block!important;margin-top:9px!important;padding:8px!important;text-align:center!important;color:#fff!important;background:#073a63!important;border-top:3px solid #e8b84b!important;border-radius:10px!important;font-size:9.5px!important;font-weight:800!important}
 }
 </style>
 </head>
