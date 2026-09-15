@@ -202,6 +202,7 @@ function load(){
 
   const url=api+(api.includes('?')?'&':'?')+'action=list&key='+encodeURIComponent(key);
   jsonp(url,data=>{
+    $('err').textContent='';
     if(!data||data.ok===false){
       $('err').textContent=data?.error||'تعذر تحميل النتائج.';
       return;
