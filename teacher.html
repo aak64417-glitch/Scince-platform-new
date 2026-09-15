@@ -51,22 +51,11 @@ body{margin:0;background:var(--bg);color:#fff;font-family:Tahoma,"Segoe UI",Aria
   .header h1{font-size:24px}.logo{width:68px;height:68px;font-size:27px}
   .btn{padding:10px 11px}
 }
-@page{size:A4 portrait;margin:8mm}
 @media print{
-*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-html,body{background:#fff!important;color:#14263b!important}.wrap{max-width:none!important;padding:0!important}
-.setup,.toolbar,.sort-note,.btn,.modal,.card:has(.setup){display:none!important}
-.header{position:relative!important;display:flex!important;align-items:center!important;gap:14px!important;padding:14px 18px!important;margin:0 0 9px!important;background:linear-gradient(135deg,#073a63,#0b5f86)!important;color:#fff!important;border:0!important;border-radius:16px!important}
-.header:after{content:"1448 هـ";position:absolute;left:18px;top:17px;background:#e8b84b;color:#17334d;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:900}
-.logo{width:58px!important;height:58px!important;border-radius:14px!important;background:#fff!important;color:#0b5277!important;font-size:20px!important;border:2px solid #e8b84b!important}
-.header h1{font-size:23px!important;margin:0!important;color:#fff!important}.header p{font-size:11px!important;margin:4px 0 0!important;color:#eaf7ff!important}
-.card{background:#fff!important;border:0!important;padding:0!important;margin-top:8px!important}.summary{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:6px!important;margin-bottom:9px!important}
-.metric{background:#f3f8fc!important;border:1px solid #9fc4d8!important;border-radius:12px!important;padding:7px 5px!important;color:#38536a!important;font-size:10px!important}.metric b{font-size:19px!important;color:#0b5277!important;margin-top:1px!important}
-.tablewrap{overflow:visible!important;border:0!important}.table{width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important}.table thead{display:table-header-group!important}.table tr{break-inside:avoid!important;page-break-inside:avoid!important}
-.table th{position:static!important;background:#0b5277!important;color:#fff!important;font-size:10.5px!important;padding:7px 4px!important;border:1px solid #5b91ae!important;border-bottom:2px solid #e8b84b!important}.table td{font-size:10.5px!important;line-height:1.35!important;padding:7px 4px!important;color:#1a2b3b!important;background:#fff!important;border:1px solid #d8e3ea!important;vertical-align:middle!important}.table tbody tr:nth-child(even) td{background:#f6fafc!important}.table td.name{text-align:right!important;font-weight:900!important;color:#0b3552!important}
-.table th:nth-child(1),.table td:nth-child(1){width:6%!important}.table th:nth-child(2),.table td:nth-child(2){width:31%!important}.table th:nth-child(3),.table td:nth-child(3){width:10%!important}.table th:nth-child(4),.table td:nth-child(4){width:24%!important}.table th:nth-child(5),.table td:nth-child(5){width:10%!important}.table th:nth-child(6),.table td:nth-child(6){width:9%!important}.table th:nth-child(7),.table td:nth-child(7){width:10%!important}
-.table th:nth-child(8),.table td:nth-child(8),.table th:nth-child(9),.table td:nth-child(9),.table th:nth-child(10),.table td:nth-child(10){display:none!important}.small{font-size:8px!important;color:#617486!important}.excellent{color:#08783f!important}.verygood{color:#006a8e!important}.good{color:#8a6500!important}.pass{color:#a34e00!important}.support{color:#b4232d!important}
-.tablewrap:after{content:"مدرسة أبي الدرداء المتوسطة  •  معلم المادة: علي طاهر البقاشي  •  مدير المدرسة: فوزي محمد الهلال";display:block!important;margin-top:9px!important;padding:8px!important;text-align:center!important;color:#fff!important;background:#073a63!important;border-top:3px solid #e8b84b!important;border-radius:10px!important;font-size:9.5px!important;font-weight:800!important}
+  .setup,.toolbar,.sort-note,.btn,.modal{display:none!important}
+  .card{border:none}.wrap{max-width:none}
+  .table th,.table td{color:#000;border:1px solid #aaa}
+  body{background:#fff;color:#000}
 }
 </style>
 </head>
@@ -113,7 +102,7 @@ html,body{background:#fff!important;color:#14263b!important}.wrap{max-width:none
       </select>
       <label style="font-size:13px"><input id="latestOnly" type="checkbox" checked> أحدث محاولة لكل طالب</label>
       <button class="btn" id="export">تصدير CSV</button>
-      <button class="btn" onclick="window.print()">طباعة</button>
+      <button class="btn" onclick="printBeautifulReport()">طباعة</button>
     </div>
     <div class="sort-note">✓ ترتيب النتائج تلقائيًا: 1/1 ← 2/1 ← 3/1 ← 4/1، وداخل كل فصل حسب الاسم أبجديًا.</div>
   </div>
@@ -362,6 +351,56 @@ function csv(){
   ael.download='تقرير-أداء-المحقق-العلمي.csv';
   ael.click();
   setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+
+
+function printBeautifulReport(){
+  const data=rows();
+  if(!data.length){alert('لا توجد نتائج للطباعة. حمّل النتائج أولاً.');return;}
+  const avg=Math.round(data.reduce((n,r)=>n+(+r.percentage||0),0)/data.length);
+  const exc=data.filter(r=>(+r.percentage||0)>=90).length;
+  const sup=data.filter(r=>(+r.percentage||0)<60).length;
+  const classes=[...new Set(data.map(r=>String(r.className||'غير محدد')))];
+  const levelClass=p=>p>=90?'ex':p>=80?'vg':p>=70?'gd':p>=60?'ps':'sp';
+  const classPages=classes.map((c,ci)=>{
+    const rs=data.filter(r=>String(r.className||'غير محدد')===c);
+    return `<section class="page results">
+      <div class="top"><div class="brand"><span class="science">علوم</span><div><b>مدرسة أبي الدرداء المتوسطة</b><h1>تقرير المحقق العلمي</h1></div></div><div class="classbadge">الفصل ${esc(c)}</div></div>
+      <div class="subtitle">قائمة الطلاب والنتائج</div>
+      <table><thead><tr><th>م</th><th>اسم الطالب</th><th>النشاط المخصص</th><th>الدرجة</th><th>النسبة</th><th>مستوى الأداء</th></tr></thead>
+      <tbody>${rs.map((r,i)=>`<tr><td>${i+1}</td><td class="nm">${esc(r.studentName)}</td><td><b>نشاط ${esc(r.assignedCaseNo||'—')}</b><small>${esc(r.assignedCaseTitle||'')}</small></td><td>${esc(r.score)}/${esc(r.maxScore)}</td><td>${esc(r.percentage)}%</td><td><span class="pill ${levelClass(+r.percentage)}">${esc(r.level)}</span></td></tr>`).join('')}</tbody></table>
+      <div class="quote">كل تجربة تقرّبنا من فهمٍ أكبر للعلم</div>
+      <footer><span>معلم المادة: علي طاهر البقاشي</span><span>مدير المدرسة: فوزي محمد الهلال</span><b>${ci+2}</b></footer>
+    </section>`;
+  }).join('');
+  const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير المحقق العلمي</title><style>
+  @page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#dfe7ed;font-family:Tahoma,Arial;color:#15314b}
+  .page{width:210mm;min-height:297mm;margin:0 auto 8mm;background:#fff;padding:10mm 9mm;position:relative;page-break-after:always;overflow:hidden}
+  .page:before{content:"";position:absolute;right:0;top:0;width:100%;height:7mm;background:linear-gradient(90deg,#d7aa3b 0 15%,#08799b 15% 100%)}
+  .top{margin-top:5mm;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #d9b04d;padding-bottom:5mm}
+  .brand{display:flex;align-items:center;gap:4mm}.science{width:18mm;height:18mm;border-radius:5mm;background:#0b5277;color:white;display:grid;place-items:center;font-weight:900}
+  h1{font-size:20pt;margin:1mm 0 0}.brand b{font-size:11pt}.classbadge{background:#0b5277;color:#fff;border-radius:6mm;padding:3mm 6mm;font-size:14pt;font-weight:900}
+  .hero{text-align:center;margin:13mm 0 8mm}.hero h1{font-size:30pt}.hero p{font-size:13pt;color:#537187}.ribbon{background:linear-gradient(90deg,#073a63,#0b6c91);color:#fff;padding:4mm;border-radius:4mm;font-size:15pt;font-weight:900}
+  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:4mm;margin:8mm 0}.metric{border:1px solid #9bc3d6;border-radius:5mm;padding:6mm;text-align:center;background:#f5fafc}.metric b{display:block;font-size:26pt;color:#0b5277}.metric.gold b{color:#b17a0b}.metric.red b{color:#b52e35}
+  .motto{margin:8mm 0;background:#073a63;color:white;border-right:4mm solid #d9b04d;border-radius:4mm;padding:5mm;text-align:center;font-size:14pt;font-weight:900}
+  .art{margin-top:12mm;text-align:center;font-size:34pt;letter-spacing:5mm}.names{display:flex;justify-content:space-between;margin-top:15mm;border-top:1px solid #cddbe4;padding-top:5mm;font-weight:900}
+  .subtitle{text-align:center;font-size:14pt;font-weight:900;margin:5mm 0 4mm;color:#0b5277}table{width:100%;border-collapse:separate;border-spacing:0;font-size:10.5pt;border:1px solid #b8ccd8;border-radius:3mm;overflow:hidden}
+  th{background:#0b6688;color:#fff;padding:3mm 2mm;border-left:1px solid #6da1b6}td{padding:2.7mm 2mm;border-bottom:1px solid #d6e1e7;border-left:1px solid #e1e8ec;text-align:center}tr:nth-child(even) td{background:#f6fafc}.nm{text-align:right;font-weight:900}small{display:block;color:#69808e;margin-top:1mm}
+  .pill{display:inline-block;padding:1.5mm 3mm;border-radius:4mm;font-weight:900}.ex{background:#d9f5e4;color:#08783f}.vg{background:#dff2fa;color:#076686}.gd{background:#fff0b8;color:#876100}.ps{background:#ffe1bd;color:#984d00}.sp{background:#ffd9dc;color:#a6202b}
+  .quote{margin-top:5mm;background:#f2f7fa;border-radius:4mm;padding:3mm;text-align:center;font-weight:900;color:#315c72}
+  footer{position:absolute;bottom:8mm;right:9mm;left:9mm;border-top:2px solid #d9b04d;padding-top:3mm;display:flex;justify-content:space-between;align-items:center;font-size:9pt;color:#36546a}footer b{background:#0b5277;color:#fff;border-radius:50%;width:8mm;height:8mm;display:grid;place-items:center}
+  @media print{body{background:#fff}.page{margin:0;break-after:page;page-break-after:always}}
+  </style></head><body>
+  <section class="page cover"><div class="top"><div class="brand"><span class="science">علوم</span><div><b>مدرسة أبي الدرداء المتوسطة</b><div>معًا نصنع جيلاً مبدعًا في العلوم</div></div></div><div class="classbadge">1448 هـ</div></div>
+  <div class="hero"><h1>تقرير المحقق العلمي</h1><p>نتائج طلاب المرحلة المتوسطة — مركز نتائج العلوم</p></div>
+  <div class="ribbon">ملخص الأداء العام</div><div class="metrics"><div class="metric"><span>عدد المشاركات</span><b>${data.length}</b></div><div class="metric gold"><span>متوسط الأداء</span><b>${avg}%</b></div><div class="metric"><span>ممتاز</span><b>${exc}</b></div><div class="metric red"><span>يحتاج دعمًا</span><b>${sup}</b></div></div>
+  <div class="motto">العلم طريق المستقبل… وأنتم صُنّاعه</div><div class="art">⚗︎  ◉  ✦  ⌬</div>
+  <div class="names"><span>معلم المادة<br>علي طاهر البقاشي</span><span>مدير المدرسة<br>فوزي محمد الهلال</span></div><footer><span>مدرسة أبي الدرداء المتوسطة • مركز نتائج العلوم</span><b>1</b></footer></section>
+  ${classPages}</body></html>`;
+  const w=window.open('','_blank');
+  if(!w){alert('اسمح بالنوافذ المنبثقة للطباعة.');return;}
+  w.document.open();w.document.write(html);w.document.close();
+  setTimeout(()=>{w.focus();w.print();},500);
 }
 
 $('load').onclick=load;
