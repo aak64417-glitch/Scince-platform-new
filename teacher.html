@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>تقرير المحقق العلمي</title>
+<title>مركز نتائج العلوم الموحد</title>
 <style>
 :root{
   --bg:#071326;--panel:#102746;--panel2:#0c203b;--line:#2f5f90;
@@ -27,7 +27,7 @@ body{margin:0;background:var(--bg);color:#fff;font-family:Tahoma,"Segoe UI",Aria
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .metric{background:var(--panel2);border:1px solid #315c88;border-radius:14px;padding:14px;text-align:center}
 .metric b{display:block;font-size:28px;color:#ffd56b;margin-top:4px}
-.toolbar{display:grid;grid-template-columns:1.5fr 1fr 1fr auto auto auto;gap:8px;align-items:center}
+.toolbar{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr auto auto auto;gap:8px;align-items:center}
 .sort-note{margin-top:10px;color:#a9f0df;font-weight:800;font-size:13px}
 .tablewrap{overflow:auto;border-radius:12px;border:1px solid var(--line)}
 .table{width:100%;border-collapse:collapse;min-width:1180px}
@@ -64,8 +64,8 @@ body{margin:0;background:var(--bg);color:#fff;font-family:Tahoma,"Segoe UI",Aria
   <div class="header">
     <div class="logo">علوم</div>
     <div>
-      <h1>تقرير المحقق العلمي</h1>
-      <p>مدرسة أبي الدرداء المتوسطة — مركز نتائج العلوم</p>
+      <h1>مركز نتائج العلوم الموحد</h1>
+      <p>مدرسة أبي الدرداء المتوسطة — المحقق العلمي ورحلة عالم العلوم</p>
     </div>
   </div>
 
@@ -100,18 +100,23 @@ body{margin:0;background:var(--bg);color:#fff;font-family:Tahoma,"Segoe UI",Aria
         <option value="3">النشاط 3</option><option value="4">النشاط 4</option>
         <option value="5">النشاط 5</option>
       </select>
+      <select id="platformFilter">
+        <option value="">كل المنصات</option>
+        <option value="المحقق العلمي">المحقق العلمي</option>
+        <option value="رحلة عالم العلوم">رحلة عالم العلوم</option>
+      </select>
       <label style="font-size:13px"><input id="latestOnly" type="checkbox" checked> أحدث محاولة لكل طالب</label>
       <button class="btn" id="export">تصدير CSV</button>
       <button class="btn" onclick="printBeautifulReport()">طباعة</button>
     </div>
-    <div class="sort-note">✓ ترتيب النتائج تلقائيًا: 1/1 ← 2/1 ← 3/1 ← 4/1، وداخل كل فصل حسب الاسم أبجديًا.</div>
+    <div class="sort-note">✓ عرض موحّد للمحقق العلمي ورحلة عالم العلوم. هذا الملف يقرأ النتائج فقط، ولا يغيّر طريقة حفظها في Google Sheets.</div>
   </div>
 
   <div class="card tablewrap">
     <table class="table">
       <thead>
         <tr>
-          <th>#</th><th>الطالب</th><th>الفصل</th><th>النشاط المخصص</th>
+          <th>#</th><th>الطالب</th><th>الفصل</th><th>المنصة / النشاط</th><th>النشاط / الدرس</th>
           <th>الدرجة</th><th>النسبة</th><th>المستوى</th><th>المدة</th>
           <th>وقت التسليم</th><th>الإجراءات</th>
         </tr>
@@ -163,6 +168,26 @@ function normalizedClassName(value){
 
   return raw;
 }
+
+
+function platformName(r){
+  const explicit=String(r.platform||r.platformName||r.source||r.app||r.activityPlatform||'').trim();
+  if(explicit)return explicit;
+  if(r.assignedCaseNo||r.assignedCaseTitle)return 'المحقق العلمي';
+  if(r.taskId||r.taskTitle||r.lesson||r.type)return 'رحلة عالم العلوم';
+  return 'غير محدد';
+}
+function resultPercent(r){return Number(r.percentage ?? r.percent ?? 0)||0}
+function resultTotal(r){return r.maxScore ?? r.total ?? '—'}
+function resultTime(r){return r.submittedAtLocal||r.submittedAt||r.timestamp||''}
+function resultTitle(r){
+  if(platformName(r)==='المحقق العلمي'){
+    const n=r.assignedCaseNo||'—', t=r.assignedCaseTitle||'';
+    return `نشاط ${n}${t?` — ${t}`:''}`;
+  }
+  return r.taskTitle||r.lesson||r.activityTitle||r.title||'رحلة عالم العلوم';
+}
+function resultId(r){return String(r.submissionId||r.resultId||r.id||'')}
 
 function cls(p){return p>=90?'excellent':p>=80?'verygood':p>=70?'good':p>=60?'pass':'support'}
 function secs(s){
@@ -238,9 +263,9 @@ function rows(){
   if($('latestOnly').checked){
     const m=new Map();
     a.forEach(r=>{
-      const k=(normalizedClassName(r.className)+'|'+String(r.studentName)).toLowerCase();
+      const k=(platformName(r)+'|'+normalizedClassName(r.className)+'|'+String(r.studentName)+'|'+resultTitle(r)).toLowerCase();
       const old=m.get(k);
-      if(!old||new Date(r.submittedAt)>new Date(old.submittedAt))m.set(k,r);
+      if(!old||new Date(resultTime(r))>new Date(resultTime(old)))m.set(k,r);
     });
     a=[...m.values()];
   }
@@ -248,10 +273,12 @@ function rows(){
   const q=$('search').value.trim().toLowerCase();
   const cf=$('classFilter').value;
   const af=$('activityFilter').value;
+  const pf=$('platformFilter').value;
 
   if(q)a=a.filter(r=>String(r.studentName).toLowerCase().includes(q));
   if(cf)a=a.filter(r=>normalizedClassName(r.className)===cf);
-  if(af)a=a.filter(r=>String(r.assignedCaseNo)===af);
+  if(af)a=a.filter(r=>platformName(r)!=='المحقق العلمي'||String(r.assignedCaseNo)===af);
+  if(pf)a=a.filter(r=>platformName(r)===pf);
 
   return sortResults(a);
 }
@@ -259,26 +286,27 @@ function render(){
   const a=rows();
 
   $('count').textContent=a.length;
-  const avg=a.length?Math.round(a.reduce((s,r)=>s+(+r.percentage||0),0)/a.length):0;
+  const avg=a.length?Math.round(a.reduce((s,r)=>s+resultPercent(r),0)/a.length):0;
   $('avg').textContent=avg+'%';
-  $('excellent').textContent=a.filter(r=>(+r.percentage||0)>=90).length;
-  $('support').textContent=a.filter(r=>(+r.percentage||0)<60).length;
+  $('excellent').textContent=a.filter(r=>resultPercent(r)>=90).length;
+  $('support').textContent=a.filter(r=>resultPercent(r)<60).length;
 
   $('body').innerHTML=a.map((r,i)=>`
     <tr>
       <td>${i+1}</td>
       <td class="name">${esc(r.studentName)}</td>
       <td>${esc(normalizedClassName(r.className))}</td>
-      <td><b>نشاط ${esc(r.assignedCaseNo||'—')}</b><br><span class="small">${esc(r.assignedCaseTitle||'')}</span></td>
-      <td>${esc(r.score)}/${esc(r.maxScore)}</td>
-      <td>${esc(r.percentage)}%</td>
-      <td class="level ${cls(+r.percentage)}">${esc(r.level)}</td>
+      <td><b>${esc(platformName(r))}</b></td>
+      <td><span class="small">${esc(resultTitle(r))}</span></td>
+      <td>${esc(r.score)}/${esc(resultTotal(r))}</td>
+      <td>${esc(resultPercent(r))}%</td>
+      <td class="level ${cls(resultPercent(r))}">${esc(r.level||'')}</td>
       <td>${secs(r.durationSec)}</td>
-      <td>${esc(r.submittedAtLocal||r.submittedAt)}</td>
+      <td>${esc(resultTime(r))}</td>
       <td>
         <div class="actions">
-          <button class="btn" data-detail="${esc(r.submissionId)}">عرض</button>
-          <button class="btn danger" data-delete="${esc(r.submissionId)}">إتاحة إعادة المحاولة</button>
+          ${resultId(r)?`<button class="btn" data-detail="${esc(resultId(r))}">عرض</button>`:''}
+          ${r.submissionId?`<button class="btn danger" data-delete="${esc(r.submissionId)}">إتاحة إعادة المحاولة</button>`:''}
         </div>
       </td>
     </tr>
@@ -290,14 +318,14 @@ function render(){
   document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>deleteSubmission(b.dataset.delete));
 }
 function detail(id){
-  const r=all.find(x=>x.submissionId===id);
+  const r=all.find(x=>resultId(x)===id);
   if(!r)return;
 
   $('detailTitle').textContent=r.studentName+' — '+normalizedClassName(r.className);
   $('detailMeta').textContent=
-    `النشاط ${r.assignedCaseNo||'—'}: ${r.assignedCaseTitle||''} — `
-    +`الدرجة ${r.score}/${r.maxScore} — ${r.percentage}% — `
-    +`${r.level} — المدة ${secs(r.durationSec)}`;
+    `${platformName(r)} — ${resultTitle(r)} — `
+    +`الدرجة ${r.score}/${resultTotal(r)} — ${resultPercent(r)}% — `
+    +`${r.level||''} — المدة ${secs(r.durationSec)}`;
 
   let ans=[];
   try{ans=typeof r.answers==='string'?JSON.parse(r.answers):r.answers||[];}catch(e){}
@@ -354,14 +382,14 @@ function deleteSubmission(id){
 }
 function csv(){
   const a=rows();
-  const head=['الطالب','الفصل','رقم النشاط','اسم النشاط','الدرجة','من','النسبة','المستوى','المدة بالثواني','وقت التسليم'];
+  const head=['الطالب','الفصل','المنصة / النشاط','النشاط / الدرس','الدرجة','من','النسبة','المستوى','المدة بالثواني','وقت التسليم'];
 
   const lines=[
     head,
     ...a.map(r=>[
-      r.studentName,normalizedClassName(r.className),r.assignedCaseNo,r.assignedCaseTitle,
-      r.score,r.maxScore,r.percentage,r.level,r.durationSec,
-      r.submittedAtLocal||r.submittedAt
+      r.studentName,normalizedClassName(r.className),platformName(r),resultTitle(r),
+      r.score,resultTotal(r),resultPercent(r),r.level,r.durationSec,
+      resultTime(r)
     ])
   ].map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(','));
 
@@ -369,7 +397,7 @@ function csv(){
   const u=URL.createObjectURL(blob);
   const ael=document.createElement('a');
   ael.href=u;
-  ael.download='تقرير-أداء-المحقق-العلمي.csv';
+  ael.download='مركز-نتائج-العلوم-الموحد.csv';
   ael.click();
   setTimeout(()=>URL.revokeObjectURL(u),1000);
 }
@@ -378,9 +406,9 @@ function csv(){
 function printBeautifulReport(){
   const data=rows();
   if(!data.length){alert('لا توجد نتائج للطباعة. حمّل النتائج أولاً.');return;}
-  const avg=Math.round(data.reduce((n,r)=>n+(+r.percentage||0),0)/data.length);
-  const exc=data.filter(r=>(+r.percentage||0)>=90).length;
-  const sup=data.filter(r=>(+r.percentage||0)<60).length;
+  const avg=Math.round(data.reduce((n,r)=>n+resultPercent(r),0)/data.length);
+  const exc=data.filter(r=>resultPercent(r)>=90).length;
+  const sup=data.filter(r=>resultPercent(r)<60).length;
   const classes=[...new Set(data.map(r=>normalizedClassName(r.className)||'غير محدد'))];
   const levelClass=p=>p>=90?'ex':p>=80?'vg':p>=70?'gd':p>=60?'ps':'sp';
   const classPages=classes.map((c,ci)=>{
@@ -428,6 +456,7 @@ $('load').onclick=load;
 $('search').oninput=render;
 $('classFilter').onchange=render;
 $('activityFilter').onchange=render;
+$('platformFilter').onchange=render;
 $('latestOnly').onchange=render;
 $('export').onclick=csv;
 $('close').onclick=()=>$('modal').classList.remove('open');
