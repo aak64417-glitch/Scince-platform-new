@@ -123,7 +123,7 @@ const LESSONS={
 let rawResults=[];
 const $=id=>document.getElementById(id);
 
-$('api').value=localStorage.getItem('journey_results_api')||DEFAULT_API_URL;
+$('api').value=localStorage.getItem('sj_teacher_api')||localStorage.getItem('journey_results_api')||DEFAULT_API_URL;
 $('key').value=localStorage.getItem('sj_teacher_key')||localStorage.getItem('journey_results_key')||'';
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
@@ -149,17 +149,73 @@ function resultTime(r){return r.timestamp||r.submittedAt||''}
 function fmtDate(v){if(!v)return'—';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString('ar-SA')}
 function status(text,kind=''){const el=$('status');el.className='status'+(kind?' '+kind:'');el.textContent=text}
 
-function jsonp(url){
- return new Promise((resolve,reject)=>{
-   const cb='jr_cb_'+Date.now()+'_'+Math.floor(Math.random()*99999);
-   const s=document.createElement('script');
-   const timer=setTimeout(()=>{cleanup();reject(new Error('انتهت مهلة الاتصال بالخادم.'))},20000);
-   function cleanup(){clearTimeout(timer);try{s.remove()}catch(e){};try{delete window[cb]}catch(e){}}
-   window[cb]=data=>{cleanup();resolve(data)};
-   s.onerror=()=>{cleanup();reject(new Error('تعذر الاتصال بخادم النتائج.'))};
-   s.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb);
-   document.body.appendChild(s);
+let __journeyJsonpQueue=Promise.resolve();
+
+function jsonpParams(params){
+ const run=()=>new Promise((resolve,reject)=>{
+   const api=$('api').value.trim();
+   if(!api){reject(new Error('أدخل رابط Apps Script أولًا.'));return}
+   const callbackName='scienceHubCallback';
+   const script=document.createElement('script');
+   const q=new URLSearchParams({...params,callback:callbackName,_:Date.now()});
+   let finished=false;
+   const timer=setTimeout(()=>{finish();reject(new Error('انتهت مهلة الاتصال بالخادم.'))},20000);
+   function finish(){
+     if(finished)return;
+     finished=true;
+     clearTimeout(timer);
+     try{script.remove()}catch(e){}
+   }
+   window[callbackName]=data=>{finish();resolve(data)};
+   script.onerror=()=>{finish();reject(new Error('تعذر تحميل استجابة Apps Script.'))};
+   script.src=api+(api.includes('?')?'&':'?')+q.toString();
+   document.body.appendChild(script);
  });
+ const p=__journeyJsonpQueue.then(run,run);
+ __journeyJsonpQueue=p.catch(()=>{});
+ return p;
+}
+
+function bridgeParams(params){
+ return new Promise((resolve,reject)=>{
+   const api=$('api').value.trim();
+   if(!api){reject(new Error('أدخل رابط Apps Script أولًا.'));return}
+   const requestId='jr_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+   const iframe=document.createElement('iframe');
+   iframe.style.display='none';
+   let done=false;
+   const timer=setTimeout(()=>finish(new Error('انتهت مهلة الاتصال الاحتياطي بالخادم.')),20000);
+
+   function cleanup(){
+     clearTimeout(timer);
+     window.removeEventListener('message',onMessage);
+     try{iframe.remove()}catch(e){}
+   }
+   function finish(err,data){
+     if(done)return;
+     done=true;
+     cleanup();
+     if(err)reject(err); else resolve(data);
+   }
+   function onMessage(ev){
+     const msg=ev.data;
+     if(!msg||msg.type!=='science-apps-script-bridge'||String(msg.requestId)!==requestId)return;
+     finish(null,msg.data);
+   }
+   window.addEventListener('message',onMessage);
+   const q=new URLSearchParams({...params,transport:'bridge',requestId,_:Date.now()});
+   iframe.src=api+(api.includes('?')?'&':'?')+q.toString();
+   iframe.onerror=()=>finish(new Error('تعذر الاتصال الاحتياطي بخادم النتائج.'));
+   document.body.appendChild(iframe);
+ });
+}
+
+async function apiRead(params){
+ try{
+   return await jsonpParams(params);
+ }catch(firstError){
+   return await bridgeParams(params);
+ }
 }
 async function loadResults(){
  const api=$('api').value.trim(), key=$('key').value.trim();
@@ -168,8 +224,9 @@ async function loadResults(){
  try{
    localStorage.setItem('journey_results_api',api);
    localStorage.setItem('journey_results_key',key);
-   const url=api+(api.includes('?')?'&':'?')+'action=report&key='+encodeURIComponent(key);
-   const data=await jsonp(url);
+   localStorage.setItem('sj_teacher_key',key);
+   localStorage.setItem('sj_teacher_api',api);
+   const data=await apiRead({action:'report',key});
    if(!data||data.ok===false)throw new Error(data?.message||data?.error||'تعذر تحميل النتائج.');
    const arr=Array.isArray(data.results)?data.results:[];
    rawResults=arr.map(r=>({...r,className:normalizeClassName(r.className),type:normalizedType(r.type)}));
