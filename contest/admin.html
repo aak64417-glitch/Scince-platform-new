@@ -266,18 +266,20 @@ function curYear(){return String(A.settings.year||'1448')}
 function studentLink(id){const base=new URL('index.html',location.href);base.searchParams.set('c',id);if(!(window.CONTEST_CONFIG&&CONTEST_CONFIG.api))base.searchParams.set('api',A.api);return base.href}
 
 /* ================= الدخول ================= */
-$('lApi').value=C.qs.get('api')||localStorage.getItem('contest_admin_api')||(window.CONTEST_CONFIG||{}).api||'';
-$('lKey').value=localStorage.getItem('contest_admin_key')||'';
+$('lApi').value=C.qs.get('api')||readStore('contest_admin_api')||(window.CONTEST_CONFIG||{}).api||'';
+$('lKey').value=readStore('contest_admin_key');
 $('lGo').onclick=()=>login();
 $('lKey').onkeydown=e=>{if(e.key==='Enter')login()};
 async function login(){
   A.api=$('lApi').value.trim();A.key=$('lKey').value.trim();
   if(!A.api||!A.key){$('lErr').textContent='أدخل رابط الخادم والرمز.';return}
   $('lErr').textContent='جارٍ الاتصال…';
-  try{await refresh();localStorage.setItem('contest_admin_api',A.api);localStorage.setItem('contest_admin_key',A.key);localStorage.setItem('contest_api',A.api);$('login').classList.add('hidden');$('app').classList.remove('hidden');$('lErr').textContent=''}
+  try{await refresh();store('contest_admin_api',A.api);store('contest_admin_key',A.key);store('contest_api',A.api);$('login').classList.add('hidden');$('app').classList.remove('hidden');$('lErr').textContent=''}
   catch(e){$('lErr').textContent='⚠️ '+e.message}
 }
-function logout(){localStorage.removeItem('contest_admin_key');location.reload()}
+function store(k,v){try{localStorage.setItem(k,v)}catch(e){try{sessionStorage.setItem(k,v)}catch(e2){}}}
+function readStore(k){try{return localStorage.getItem(k)||sessionStorage.getItem(k)||''}catch(e){return ''}}
+function logout(){try{localStorage.removeItem('contest_admin_key');sessionStorage.removeItem('contest_admin_key')}catch(e){}location.reload()}
 async function refresh(){
   const j=await call('adminInit');
   A.settings=j.settings;A.comps=j.comps;A.years=j.years||{};A.total=j.totalResults;

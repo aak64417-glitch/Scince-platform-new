@@ -389,8 +389,8 @@ async function submit(auto){
   }finally{sending=false;btn.disabled=false}
 }
 function getPending(){try{return JSON.parse(localStorage.getItem(PENDING)||'[]')}catch(e){return[]}}
-function addPending(p){const a=getPending().filter(x=>x.submissionId!==p.submissionId);a.push(p);localStorage.setItem(PENDING,JSON.stringify(a))}
-function removePending(id){localStorage.setItem(PENDING,JSON.stringify(getPending().filter(x=>x.submissionId!==id)))}
+function addPending(p){const a=getPending().filter(x=>x.submissionId!==p.submissionId);a.push(p);try{localStorage.setItem(PENDING,JSON.stringify(a))}catch(e){}}
+function removePending(id){try{localStorage.setItem(PENDING,JSON.stringify(getPending().filter(x=>x.submissionId!==id)))}catch(e){}}
 async function retryPending(silent){
   const a=getPending();if(!a.length)return 0;let n=0;
   for(const p of a){try{const j=await C.api('submit',p);if(j.ok||j.alreadySubmitted){removePending(p.submissionId);n++}}catch(e){}}

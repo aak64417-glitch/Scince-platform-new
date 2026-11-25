@@ -4,7 +4,8 @@
   const cfg = window.CONTEST_CONFIG || {};
 
   function getApi() {
-    return (qs.get('api') || cfg.api || localStorage.getItem('contest_api') || '').trim();
+    let st = ''; try { st = localStorage.getItem('contest_api') || sessionStorage.getItem('contest_api') || ''; } catch (e) { }
+    return (qs.get('api') || cfg.api || st || '').trim();
   }
 
   async function api(action, data, opts) {
