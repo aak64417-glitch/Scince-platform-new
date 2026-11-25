@@ -123,7 +123,7 @@ iframe.preview{width:100%;height:78vh;border:1px solid var(--line);border-radius
     <section data-pane="comps" class="hidden">
       <div id="compList">
         <div class="card"><div class="row" style="justify-content:space-between"><h2>جميع المسابقات</h2>
-          <div class="row"><button class="btn gold" onclick="newComp()">➕ مسابقة جديدة</button><button class="btn teal" onclick="fromTemplate()">📦 من القالب الجاهز (المحقق العلمي)</button><label class="btn">📂 استيراد ملف مسابقة<input type="file" accept=".json" hidden onchange="importCompFile(this)"></label></div></div>
+          <div class="row"><button class="btn gold" onclick="newComp()">➕ مسابقة جديدة</button><button class="btn teal" onclick="fromTemplate()">📦 المسابقات الجاهزة</button><label class="btn">📂 استيراد ملف مسابقة<input type="file" accept=".json" hidden onchange="importCompFile(this)"></label></div></div>
           <div class="row" style="margin:10px 0"><label class="small">العام:</label><select id="clYear" style="width:auto"></select></div>
           <div class="tablewrap"><table class="t"><thead><tr><th>العام</th><th>المسابقة</th><th>الصفوف</th><th>طريقة التوزيع</th><th>الأنشطة</th><th>المشاركات</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody id="clBody"></tbody></table></div>
         </div>
@@ -359,7 +359,20 @@ async function getFull(id,force){if(!A.full[id]||force){const j=await call('getC
 async function dupComp(id,btn){await busy(btn,async()=>{const c=await getFull(id);const cfg=JSON.parse(JSON.stringify(c.config));cfg.title=cfg.title+' (نسخة)';await call('saveComp',{config:cfg,year:curYear(),status:'draft'});toast('✓ تم إنشاء نسخة كمسودة في العام الحالي');await refresh()})}
 async function exportComp(id,btn){await busy(btn,async()=>{const c=await getFull(id);const cfg=JSON.parse(JSON.stringify(c.config));for(const k of cfg.cases){if(String(k.image||'').startsWith('asset:'))k.image=await C.resolveImage(k.image)}download((cfg.title||'مسابقة')+'.json',JSON.stringify({type:'contest-v2',config:cfg},null,1))})}
 async function importCompFile(inp){const f=inp.files[0];inp.value='';if(!f)return;try{const d=JSON.parse(await f.text());const cfg=d.config||d;if(!cfg.cases)throw new Error('الملف لا يحتوي مسابقة صالحة.');openEditor({id:'',year:curYear(),status:'draft',config:cfg})}catch(e){toast('⚠️ '+e.message,true)}}
-async function fromTemplate(){try{const r=await fetch('templates/mohaqiq-ads.json',{cache:'no-store'});const cfg=await r.json();cfg.title=cfg.title+' '+curYear()+'هـ';if(A.roster&&A.roster.classes&&A.roster.classes.length){cfg.classes=JSON.parse(JSON.stringify(A.roster.classes));cfg.grades=[...new Set(cfg.classes.map(c=>c.g))].sort()}openEditor({id:'',year:curYear(),status:'draft',config:cfg})}catch(e){toast('تعذر تحميل القالب.',true)}}
+async function fromTemplate(){
+  try{const r=await fetch('templates/index.json',{cache:'no-store'});const list=await r.json();
+    const groups={};list.forEach(t=>{const k=`${C.gradeName(t.grade)} — الفصل الدراسي ${t.semester}`;(groups[k]=groups[k]||[]).push(t)});
+    openModal('📦 المسابقات الجاهزة',`<div class="small" style="margin-bottom:8px">مسابقات مبنية من بنوك أسئلة كتاب الطالب في «منصة دروس العلوم». اختر مسابقة لتفتح في المحرر، فتراجعها وتعدّل ما تريد ثم تحفظها.</div>`+Object.entries(groups).map(([k,ts])=>`<h3>${esc(k)}</h3><div class="comp-cards">${ts.map(t=>`<div class="cc" style="cursor:pointer;display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:center" onclick="useTemplate('${t.file}',${t.grade})"><img src="${esc(t.cover)}" style="width:90px;height:64px;object-fit:cover;border-radius:10px;background:#16345c"><div><h4 style="margin:0">${esc(t.title)}</h4><div class="small">${t.cases} محطات — ${esc(t.chapters.map(c=>c.split(':')[0]).join('، '))}</div></div></div>`).join('')}</div>`).join(''));
+  }catch(e){toast('تعذر تحميل المسابقات الجاهزة.',true)}
+}
+async function useTemplate(file,grade){
+  try{const r=await fetch(file,{cache:'no-store'});const cfg=await r.json();closeModal();
+    cfg.title=cfg.title+' '+curYear()+'هـ';
+    const rc=(A.roster&&A.roster.classes||[]).filter(c=>c.g===Number(grade));
+    if(rc.length){cfg.classes=JSON.parse(JSON.stringify(rc));cfg.grades=[Number(grade)]}
+    showTab('comps');openEditor({id:'',year:curYear(),status:'draft',config:cfg});toast('✓ راجع المسابقة ثم اضغط «حفظ» أو «حفظ وفتح للطلاب»');
+  }catch(e){toast('تعذر تحميل المسابقة.',true)}
+}
 async function deleteComp(id){
   const c=A.comps.find(x=>x.id===id);
   const withRes=c.results?confirm(`للمسابقة «${c.title}» ${c.results} مشاركة.\nاضغط «موافق» لحذف المسابقة مع نتائجها، أو «إلغاء» للتراجع.`):confirm(`حذف المسابقة «${c.title}»؟`);
