@@ -712,7 +712,7 @@ ctx.fillText('\u0645\u062f\u064a\u0631 \u0627\u0644\u0645\u062f\u0631\u0633\u062
   if(S.lv[4].count)rec.push(`خطة علاجية لـ ${S.lv[4].count} طالب في مستوى «يحتاج دعمًا» بمجموعات صغيرة.`);
   if(S.lv[0].count)rec.push(`تكريم ${S.lv[0].count} طالب «ممتاز» وتوظيفهم قادةً للمجموعات.`);
   const clsRows=byClass.map(([c,rs])=>[c,stat(rs)]);
-  return `<section class="page one">${top(badge)}
+  return `<section class="page one">${top(badge)}<div class="fit">
    <div class="idea1"><div class="ideatxt"><b>🔎 فكرة المسابقة:</b> يتقمّص الطالب دور «المحقق العلمي»، فيفحص إعلانًا يدّعي نتائج مذهلة، ويحدّد المنتج والادّعاء ويقوّم منطقيته ويوظّف البيانات، ثم يصدر قرارًا مبرّرًا ويبيّن أهمية المختبر المستقل. <span class="chips"><em>نشاط فردي موزّع</em><em>5 إعلانات</em><em>8 أسئلة</em><em>10 درجات</em></span></div>
      <div class="thumbs">${INV_CASES.map(c=>`<figure><img src="${abs(c.img)}" alt=""><figcaption>${c.no}. ${c.title}</figcaption></figure>`).join('')}</div></div>
    <div class="kpi4"><div><span>عدد المشاركين</span><b>${S.n}</b></div><div class="g"><span>متوسط الأداء</span><b>${S.avg}%</b></div><div><span>نسبة الإتقان (80%+)</span><b>${S.mastery}%</b></div><div><span>نسبة النجاح (60%+)</span><b>${S.pass}%</b></div><div class="r"><span>يحتاجون دعمًا</span><b>${S.lv[4].count}</b></div></div>
@@ -723,8 +723,8 @@ ctx.fillText('\u0645\u062f\u064a\u0631 \u0627\u0644\u0645\u062f\u0631\u0633\u062
      <div class="keys"><span><i style="background:${COL.ex}"></i>متقن 80%+</span><span><i style="background:${COL.gd}"></i>متوسط 60–79%</span><span><i style="background:${COL.sp}"></i>يحتاج معالجة</span></div></div>
    <div class="row3"><div class="box s"><h3>✔ نقاط القوة</h3>${strong.length?strong.slice(0,3).map(k=>`<p>${k.name} <b>${k.pct}%</b></p>`).join(''):'<p>—</p>'}</div>
      <div class="box w"><h3>✖ تحتاج معالجة</h3>${weak.length?weak.slice(0,3).map(k=>`<p>${k.name} <b>${k.pct}%</b></p>`).join(''):'<p>لا توجد مهارة دون 60%</p>'}</div>
-     <div class="box"><h3>💡 التوصيات</h3>${rec.slice(0,4).map(t=>`<p>${t}</p>`).join('')}</div></div>
-   ${foot()}</section>`;
+     <div class="box"><h3>💡 التوصيات</h3>${rec.slice(0,3).map(t=>`<p>${t}</p>`).join('')}</div></div>
+   </div>${foot()}</section>`;
   };
   pg=0;
   const allLabel=classes.length>1?'جميع الفصول':('الفصل '+esc(classes[0]));
@@ -783,7 +783,7 @@ ctx.fillText('\u0645\u062f\u064a\u0631 \u0627\u0644\u0645\u062f\u0631\u0633\u062
   .row3{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:2.5mm;margin-top:2.5mm}.row3 p{margin:1mm 0;font-size:8.8pt;line-height:1.55}.row3 .s{border-color:#8fd3b1;background:#f3fbf6}.row3 .w{border-color:#ecaab0;background:#fdf4f5}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @media print{body{background:#fff}.page{margin:0;break-after:page;page-break-after:always}}
-  </style></head><body>${html}<script>window.addEventListener('load',function(){setTimeout(function(){window.focus();window.print()},400)});<\/script></body></html>`;
+  </style></head><body>${html}<script>function fitPages(){var mm=document.querySelector('.page').clientHeight/297;document.querySelectorAll('.page .fit').forEach(function(f){f.style.zoom=1;var pg=f.closest('.page');var avail=pg.clientHeight-f.offsetTop-24*mm;var h=f.scrollHeight;if(h>avail){f.style.zoom=Math.max(.6,avail/h).toFixed(3)}})}window.addEventListener('load',function(){fitPages();setTimeout(function(){fitPages();window.focus();window.print()},500)});<\/script></body></html>`;
   const w=window.open('','_blank');
   if(!w){alert('اسمح بالنوافذ المنبثقة للطباعة.');return;}
   w.document.open();w.document.write(doc);w.document.close();
