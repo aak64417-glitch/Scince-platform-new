@@ -2,12 +2,13 @@
  * منصة مسابقات المحقق العلمي — الخادم (Google Apps Script) — الإصدار 2
  * مدرسة أبي الدرداء المتوسطة
  *
- * طريقة التركيب (مرة واحدة فقط):
- * 1) أنشئ جدول Google Sheets جديدًا باسم «منصة مسابقات المحقق العلمي».
- * 2) من القائمة: الإضافات ← Apps Script، واحذف المحتوى وألصق هذا الملف كاملًا.
- * 3) غيّر قيمة ADMIN_KEY بالأسفل إلى رمز سري خاص بك (لا تشاركه مع الطلاب).
+ * طريقة التركيب (مرة واحدة فقط — لا تحتاج إنشاء جدول بنفسك):
+ * 1) افتح script.google.com ← مشروع جديد، واحذف المحتوى وألصق هذا الملف كاملًا.
+ * 2) غيّر قيمة ADMIN_KEY بالأسفل إلى رمز سري خاص بك (لا تشاركه مع الطلاب).
+ * 3) اختر الدالة setup من القائمة أعلى المحرر واضغط «تشغيل» ووافق على الصلاحيات
+ *    (يُنشأ جدول «منصة مسابقات المحقق العلمي — البيانات» تلقائيًا في Drive الخاص بك).
  * 4) نشر ← نشر جديد ← النوع: تطبيق ويب ← التنفيذ باسم: أنا ← من يمكنه الوصول: أي شخص.
- * 5) انسخ رابط تطبيق الويب (ينتهي بـ /exec) وضعه في لوحة المعلم ← الإعدادات.
+ * 5) انسخ رابط تطبيق الويب (ينتهي بـ /exec) وضعه في لوحة المعلم.
  *
  * عند تعديل هذا الملف لاحقًا: نشر ← إدارة عمليات النشر ← تعديل ← إصدار جديد (حتى يبقى الرابط نفسه).
  */
@@ -94,7 +95,23 @@ function route_(p) {
 
 /* ============ أدوات الجداول ============ */
 function book_() {
-  return SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
+  if (SPREADSHEET_ID) return SpreadsheetApp.openById(SPREADSHEET_ID);
+  let active = null;
+  try { active = SpreadsheetApp.getActiveSpreadsheet(); } catch (e) { active = null; }
+  if (active) return active;
+  // مشروع مستقل: يُنشأ جدول البيانات تلقائيًا في Google Drive عند أول استخدام
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('SS_ID');
+  if (id) return SpreadsheetApp.openById(id);
+  const ss = SpreadsheetApp.create('منصة مسابقات المحقق العلمي — البيانات');
+  props.setProperty('SS_ID', ss.getId());
+  return ss;
+}
+/** شغّل هذه الدالة مرة واحدة من المحرر لمنح الصلاحيات وإنشاء جدول البيانات، ثم انظر السجل لرابط الجدول */
+function setup() {
+  const ss = book_();
+  sheet_(SH.settings, ['key', 'value']); sheet_(SH.comps, COMP_H); sheet_(SH.results, RESULT_H); sheet_(SH.assets, ASSET_H);
+  Logger.log('جدول البيانات جاهز: ' + ss.getUrl());
 }
 function sheet_(name, headers) {
   const b = book_();
