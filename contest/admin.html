@@ -86,11 +86,11 @@ iframe.preview{width:100%;height:78vh;border:1px solid var(--line);border-radius
     <input type="url" id="lApi" placeholder="https://script.google.com/macros/s/…/exec" dir="ltr">
     <label class="f" style="margin-top:10px">رمز المعلم (ADMIN_KEY)</label>
     <input type="password" id="lKey" placeholder="الرمز السري">
-    <div class="row" style="margin-top:12px"><button class="btn gold" id="lGo">دخول</button><span class="small">يُحفظ الرابط والرمز على هذا الجهاز فقط.</span></div>
+    <div class="row" style="margin-top:12px"><button class="btn gold" id="lGo">دخول</button><span class="small">عند أول دخول: الرمز الذي تكتبه يصبح رمزك السري. يُحفظ على هذا الجهاز فقط.</span></div>
     <div class="small" id="lErr" style="color:#ffb3b7;margin-top:8px"></div>
     <details style="margin-top:14px"><summary class="small" style="cursor:pointer">لم تنشر الخادم بعد؟ طريقة التركيب</summary>
       <ol class="small" style="line-height:2">
-        <li>افتح <b dir="ltr">script.google.com</b> ← مشروع جديد، وألصق محتوى الملف <b>contest/apps-script/Code.gs</b> كاملًا، وغيّر قيمة <b>ADMIN_KEY</b> إلى رمزك.</li>
+        <li>افتح <b dir="ltr">script.google.com</b> ← مشروع جديد، وألصق محتوى الملف <b>contest/apps-script/Code.gs</b> كاملًا دون تعديل.</li>
         <li>اختر الدالة <b>setup</b> واضغط «تشغيل» ووافق على الصلاحيات — يُنشأ جدول البيانات تلقائيًا في Drive.</li>
         <li>نشر ← نشر جديد ← تطبيق ويب ← التنفيذ باسم: أنا ← الوصول: أي شخص ← نشر، ووافق على الصلاحيات.</li>
         <li>انسخ رابط تطبيق الويب وضعه هنا مع الرمز.</li>

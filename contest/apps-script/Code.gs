@@ -4,7 +4,7 @@
  *
  * طريقة التركيب (مرة واحدة فقط — لا تحتاج إنشاء جدول بنفسك):
  * 1) افتح script.google.com ← مشروع جديد، واحذف المحتوى وألصق هذا الملف كاملًا.
- * 2) غيّر قيمة ADMIN_KEY بالأسفل إلى رمز سري خاص بك (لا تشاركه مع الطلاب).
+ * 2) لا تغيّر شيئًا: الرمز الذي تكتبه عند أول دخول للوحة المعلم يصبح رمزك السري تلقائيًا.
  * 3) اختر الدالة setup من القائمة أعلى المحرر واضغط «تشغيل» ووافق على الصلاحيات
  *    (يُنشأ جدول «منصة مسابقات المحقق العلمي — البيانات» تلقائيًا في Drive الخاص بك).
  * 4) نشر ← نشر جديد ← النوع: تطبيق ويب ← التنفيذ باسم: أنا ← من يمكنه الوصول: أي شخص.
@@ -13,7 +13,7 @@
  * عند تعديل هذا الملف لاحقًا: نشر ← إدارة عمليات النشر ← تعديل ← إصدار جديد (حتى يبقى الرابط نفسه).
  */
 
-const ADMIN_KEY = 'ضع-رمزك-السري-هنا';
+const ADMIN_KEY = 'ضع-رمزك-السري-هنا'; // لا حاجة لتغييره: الرمز الذي تكتبه عند أول دخول للوحة المعلم يصبح رمزك
 const SPREADSHEET_ID = ''; // اتركه فارغًا إذا كان السكربت مربوطًا بالجدول نفسه
 
 const SH = { settings: 'الإعدادات', comps: 'المسابقات', results: 'النتائج', assets: 'الصور' };
@@ -78,13 +78,24 @@ const ADMIN_ACTIONS = {
   backup: api_backup_
 };
 
+function adminKey_() {
+  if (ADMIN_KEY && ADMIN_KEY !== 'ضع-رمزك-السري-هنا') return ADMIN_KEY;
+  return PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || '';
+}
 function route_(p) {
   try {
     const a = String(p.action || 'ping');
     if (PUBLIC_ACTIONS[a]) return PUBLIC_ACTIONS[a](p);
     if (ADMIN_ACTIONS[a]) {
-      if (ADMIN_KEY === 'ضع-رمزك-السري-هنا') return { ok: false, error: 'غيّر قيمة ADMIN_KEY في ملف Code.gs ثم انشر إصدارًا جديدًا.' };
-      if (String(p.key || '') !== ADMIN_KEY) return { ok: false, error: 'رمز المعلم غير صحيح.' };
+      const given = String(p.key || '').trim();
+      let key = adminKey_();
+      if (!key) {
+        // أول دخول: الرمز الذي يكتبه المعلم يصبح رمزه السري
+        if (given.length < 4) return { ok: false, error: 'أول دخول: اختر رمزًا سريًا من 4 أحرف أو أرقام على الأقل.' };
+        PropertiesService.getScriptProperties().setProperty('ADMIN_KEY', given);
+        key = given;
+      }
+      if (given !== key) return { ok: false, error: 'رمز المعلم غير صحيح.' };
       return ADMIN_ACTIONS[a](p);
     }
     return { ok: false, error: 'إجراء غير معروف: ' + a };
