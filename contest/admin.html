@@ -101,6 +101,7 @@ iframe.preview{width:100%;height:78vh;border:1px solid var(--line);border-radius
     <div class="tabs" id="tabs">
       <button class="tab on" data-tab="home">🏠 الرئيسية</button>
       <button class="tab" data-tab="comps">🧩 المسابقات</button>
+      <button class="tab" data-tab="students">👥 طلاب العام</button>
       <button class="tab" data-tab="results">📋 النتائج</button>
       <button class="tab" data-tab="reports">📊 التقارير والشهادات</button>
       <button class="tab" data-tab="settings">⚙️ الإعدادات والأعوام</button>
@@ -128,6 +129,19 @@ iframe.preview{width:100%;height:78vh;border:1px solid var(--line);border-radius
         </div>
       </div>
       <div id="editor" class="hidden"></div>
+    </section>
+
+    <!-- طلاب العام -->
+    <section data-pane="students" class="hidden">
+      <div class="card"><div class="row" style="justify-content:space-between"><h2>👥 فصول وطلاب العام الدراسي <span id="stYear"></span></h2><button class="btn gold" onclick="saveRoster(this)">💾 حفظ قوائم الطلاب</button></div>
+        <div class="small" style="line-height:2">تُستخدم هذه القوائم في جميع مسابقات العام: لتوزيع الأنشطة بالتساوي واقتراح الاسم للطالب عند الكتابة. عند بدء عام جديد تُحذف هذه الأسماء نهائيًا وتُدخل أسماء العام الجديد. <b id="stTotal"></b></div>
+        <div class="grid3" id="stGrades" style="margin-top:10px"></div>
+      </div>
+      <div class="card"><h2>📥 إضافة سريعة من Excel أو نظام نور</h2>
+        <div class="small">ألصق عمودين من Excel: <b>اسم الطالب</b> ثم <b>الفصل</b> (مثل: محمد علي ⇥ 1/1)، أو عمود أسماء فقط ثم اختر الفصل.</div>
+        <div class="grid2" style="margin-top:8px;grid-template-columns:3fr 1fr"><textarea id="stBulk" style="min-height:130px" placeholder="محمد علي أحمد	1/1&#10;حسن جاسم محمد	2/1"></textarea>
+          <div style="display:grid;gap:8px;align-content:start"><label class="f">الفصل (للأسماء بدون فصل)</label><select id="stBulkCls"></select><label class="chk"><input type="checkbox" id="stBulkReplace"> استبدال أسماء الفصل بدل الإضافة</label><button class="btn teal" onclick="bulkRoster()">➕ إضافة إلى القوائم</button></div></div>
+      </div>
     </section>
 
     <!-- النتائج -->
@@ -197,13 +211,13 @@ iframe.preview{width:100%;height:78vh;border:1px solid var(--line);border-radius
       </div>
 
       <div class="card"><h2>🗓️ بدء عام دراسي جديد</h2>
-        <div class="small" style="line-height:2">العام الحالي: <b id="nyCur"></b>. عند بدء عام جديد تُنسب جميع المسابقات والنتائج الجديدة إليه، وتبقى نتائج الأعوام السابقة محفوظة ما لم تختر حذفها.</div>
+        <div class="small" style="line-height:2">العام الحالي: <b id="nyCur"></b>.</div>
+        <div class="ans bad" style="line-height:2">⚠️ عند بدء العام الجديد تُفرَّغ المنصة من بيانات الطلاب <b>نهائيًا</b>: جميع نتائج الأعوام السابقة، وقوائم أسماء الطلاب، والأسماء المحفوظة داخل المسابقات. تبقى المسابقات وأسئلتها وبيانات المدرسة لإعادة استخدامها، ثم تضيف أسماء طلاب العام الجديد من تبويب «طلاب العام».</div>
         <div class="grid3" style="margin-top:10px">
           <div><label class="f">العام الدراسي الجديد</label><input type="number" id="nyYear"></div>
           <div style="display:grid;gap:8px;align-content:end">
-            <label class="chk"><input type="checkbox" id="nyBackup" checked> تنزيل نسخة احتياطية كاملة أولًا</label>
-            <label class="chk"><input type="checkbox" id="nyClose" checked> إغلاق مسابقات الأعوام السابقة المفتوحة</label>
-            <label class="chk"><input type="checkbox" id="nyDelete"> حذف نتائج الأعوام السابقة نهائيًا</label>
+            <label class="chk"><input type="checkbox" id="nyClasses" checked> نقل أسماء الفصول فقط (بدون طلاب) إلى العام الجديد</label>
+            <label class="chk"><input type="checkbox" id="nyBackup"> تنزيل نسخة احتياطية على جهازي قبل الحذف (اختياري)</label>
           </div>
           <div><label class="f">نسخ مسابقات لإعادة استخدامها في العام الجديد (تُنسخ كمسودة بدون نتائج)</label><div id="nyClone" style="max-height:150px;overflow:auto;background:#0b1f3a;border-radius:10px;padding:8px"></div></div>
         </div>
@@ -282,10 +296,10 @@ function readStore(k){try{return localStorage.getItem(k)||sessionStorage.getItem
 function logout(){try{localStorage.removeItem('contest_admin_key');sessionStorage.removeItem('contest_admin_key')}catch(e){}location.reload()}
 async function refresh(){
   const j=await call('adminInit');
-  A.settings=j.settings;A.comps=j.comps;A.years=j.years||{};A.total=j.totalResults;
+  A.settings=j.settings;A.comps=j.comps;A.years=j.years||{};A.total=j.totalResults;A.roster=j.roster||{classes:[],rosters:{}};
   $('hYear').textContent='العام الدراسي '+curYear()+'هـ';$('hSchool').textContent=A.settings.schoolName||'';
   C.resolveImage(A.settings.logo).then(s=>{if(s){$('hLogo').src=s;$('sLogoPrev').src=s}}).catch(()=>{});
-  renderHome();renderCompList();fillYearSelects();fillSettings();
+  renderHome();renderCompList();fillYearSelects();fillSettings();renderRoster();
 }
 function allYears(){return [...new Set([curYear(),...Object.keys(A.years),...A.comps.map(c=>c.year)])].filter(Boolean).sort().reverse()}
 function fillYearSelects(){
@@ -345,7 +359,7 @@ async function getFull(id,force){if(!A.full[id]||force){const j=await call('getC
 async function dupComp(id,btn){await busy(btn,async()=>{const c=await getFull(id);const cfg=JSON.parse(JSON.stringify(c.config));cfg.title=cfg.title+' (نسخة)';await call('saveComp',{config:cfg,year:curYear(),status:'draft'});toast('✓ تم إنشاء نسخة كمسودة في العام الحالي');await refresh()})}
 async function exportComp(id,btn){await busy(btn,async()=>{const c=await getFull(id);const cfg=JSON.parse(JSON.stringify(c.config));for(const k of cfg.cases){if(String(k.image||'').startsWith('asset:'))k.image=await C.resolveImage(k.image)}download((cfg.title||'مسابقة')+'.json',JSON.stringify({type:'contest-v2',config:cfg},null,1))})}
 async function importCompFile(inp){const f=inp.files[0];inp.value='';if(!f)return;try{const d=JSON.parse(await f.text());const cfg=d.config||d;if(!cfg.cases)throw new Error('الملف لا يحتوي مسابقة صالحة.');openEditor({id:'',year:curYear(),status:'draft',config:cfg})}catch(e){toast('⚠️ '+e.message,true)}}
-async function fromTemplate(){try{const r=await fetch('templates/mohaqiq-ads.json',{cache:'no-store'});const cfg=await r.json();cfg.title=cfg.title+' '+curYear()+'هـ';openEditor({id:'',year:curYear(),status:'draft',config:cfg})}catch(e){toast('تعذر تحميل القالب.',true)}}
+async function fromTemplate(){try{const r=await fetch('templates/mohaqiq-ads.json',{cache:'no-store'});const cfg=await r.json();cfg.title=cfg.title+' '+curYear()+'هـ';if(A.roster&&A.roster.classes&&A.roster.classes.length){cfg.classes=JSON.parse(JSON.stringify(A.roster.classes));cfg.grades=[...new Set(cfg.classes.map(c=>c.g))].sort()}openEditor({id:'',year:curYear(),status:'draft',config:cfg})}catch(e){toast('تعذر تحميل القالب.',true)}}
 async function deleteComp(id){
   const c=A.comps.find(x=>x.id===id);
   const withRes=c.results?confirm(`للمسابقة «${c.title}» ${c.results} مشاركة.\nاضغط «موافق» لحذف المسابقة مع نتائجها، أو «إلغاء» للتراجع.`):confirm(`حذف المسابقة «${c.title}»؟`);
@@ -358,7 +372,7 @@ async function deleteComp(id){
 let E=null;
 function blankQuestion(){return{section:'',text:'',options:['',''],correct:0,points:1}}
 function blankCase(n){return{title:'النشاط '+n,shortName:'',image:'',intro:'',questions:[blankQuestion()]}}
-function newComp(){showTab('comps');openEditor({id:'',year:curYear(),status:'draft',config:{title:'',subtitle:'',description:'',grades:[1],classes:[1,2,3,4].map(s=>({n:s+'/1',g:1})),mode:'single',attempts:1,timeLimitMin:0,shuffleOptions:false,showReview:true,allowReflection:true,rosterAutocomplete:false,rosters:{},cases:[blankCase(1)]}})}
+function newComp(){showTab('comps');const rc=(A.roster&&A.roster.classes&&A.roster.classes.length)?JSON.parse(JSON.stringify(A.roster.classes)):null;openEditor({id:'',year:curYear(),status:'draft',config:{title:'',subtitle:'',description:'',grades:rc?[...new Set(rc.map(c=>c.g))].sort():[1],classes:rc||[1,2,3,4].map(s=>({n:s+'/1',g:1})),mode:'single',attempts:1,timeLimitMin:0,shuffleOptions:false,showReview:true,allowReflection:true,rosterAutocomplete:false,rosters:{},cases:[blankCase(1)]}})}
 async function editComp(id){showTab('comps');try{const c=await getFull(id,true);openEditor(JSON.parse(JSON.stringify(c)))}catch(e){toast('⚠️ '+e.message,true)}}
 function openEditor(c){E=c;E.config.rosters=E.config.rosters||{};$('compList').classList.add('hidden');$('editor').classList.remove('hidden');renderEditor();scrollTo({top:0})}
 function closeEditor(){E=null;$('editor').classList.add('hidden');$('compList').classList.remove('hidden')}
@@ -376,10 +390,9 @@ function renderEditor(){
    <div class="grid4"><div><label class="f">توزيع الأنشطة</label><select data-k="mode"><option value="single">نشاط واحد موزّع تلقائيًا لكل طالب</option><option value="all">جميع الأنشطة لكل طالب (مسابقة كاملة)</option><option value="choose">الطالب يختار نشاطًا واحدًا</option></select></div>
     <div><label class="f">عدد المحاولات لكل طالب</label><input type="number" min="1" max="10" data-k="attempts" value="${c.attempts||1}"></div>
     <div><label class="f">الوقت المحدد بالدقائق (0 = بدون)</label><input type="number" min="0" max="240" data-k="timeLimitMin" value="${c.timeLimitMin||0}"></div>
-    <div style="display:grid;gap:6px"><label class="chk"><input type="checkbox" data-b="shuffleOptions" ${c.shuffleOptions?'checked':''}> خلط ترتيب الخيارات</label><label class="chk"><input type="checkbox" data-b="showReview" ${c.showReview?'checked':''}> عرض الإجابات الصحيحة بعد التسليم</label><label class="chk"><input type="checkbox" data-b="allowReflection" ${c.allowReflection!==false?'checked':''}> خانة ملاحظة اختيارية</label></div></div>
+    <div style="display:grid;gap:6px"><label class="chk"><input type="checkbox" data-b="shuffleOptions" ${c.shuffleOptions?'checked':''}> خلط ترتيب الخيارات</label><label class="chk"><input type="checkbox" data-b="showReview" ${c.showReview?'checked':''}> عرض الإجابات الصحيحة بعد التسليم</label><label class="chk"><input type="checkbox" data-b="allowReflection" ${c.allowReflection!==false?'checked':''}> خانة ملاحظة اختيارية</label><label class="chk"><input type="checkbox" data-b="rosterAutocomplete" ${c.rosterAutocomplete?'checked':''}> اقتراح اسم الطالب من قوائم الفصل</label></div></div>
    <details style="margin-top:12px"><summary style="cursor:pointer;color:#ffd56b;font-weight:900">👥 قوائم الطلاب (اختياري) — لتوزيع متوازن للأنشطة واقتراح الأسماء عند الكتابة</summary>
-    <label class="chk" style="margin:8px 0"><input type="checkbox" data-b="rosterAutocomplete" ${c.rosterAutocomplete?'checked':''}> إظهار قائمة الأسماء للطالب عند كتابة اسمه</label>
-    <div class="small">ألصق أسماء كل فصل (اسم في كل سطر) — يمكن النسخ مباشرة من عمود في Excel أو نظام نور. عند التوزيع الموزّع يأخذ الطلاب الأنشطة بالتناوب حسب ترتيبهم في القائمة.</div>
+    <div class="small">✅ تُستخدم تلقائيًا قوائم «طلاب العام» لكل الفصول. اكتب هنا فقط إذا أردت قائمة خاصة بهذه المسابقة (اسم في كل سطر). عند التوزيع الموزّع يأخذ الطلاب الأنشطة بالتناوب حسب ترتيبهم في القائمة.</div>
     <div class="grid3" style="margin-top:8px">${c.classes.map(cl=>`<div><label class="f">الفصل ${esc(cl.n)} <span class="small" data-rc="${esc(cl.n)}">(${(c.rosters[cl.n]||[]).length} طالب)</span></label><textarea data-roster="${esc(cl.n)}" style="min-height:110px">${esc((c.rosters[cl.n]||[]).join('\n'))}</textarea></div>`).join('')}</div></details>
   </div>
   <div class="card"><div class="row" style="justify-content:space-between"><h2>🧪 الأنشطة والأسئلة <span class="small" id="edTotal"></span></h2><button class="btn gold" onclick="addCase()">➕ إضافة نشاط</button></div><div id="casesEd"></div></div>
@@ -678,6 +691,35 @@ async function shareImage(){
   try{if(navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],title:'تقرير النتائج'});else download('تقرير-النتائج.png',blob)}catch(e){if(e.name!=='AbortError')download('تقرير-النتائج.png',blob)}
 }
 
+/* ================= طلاب العام ================= */
+function rosterNames(n){return (A.roster.rosters[n]||[])}
+function renderRoster(){
+  const R=A.roster||(A.roster={classes:[],rosters:{}});R.rosters=R.rosters||{};
+  $('stYear').textContent=curYear()+'هـ';
+  const total=R.classes.reduce((t,c)=>t+rosterNames(c.n).length,0);$('stTotal').textContent=`(${R.classes.length} فصول — ${total} طالب)`;
+  $('stGrades').innerHTML=[1,2,3].map(g=>{const cls=R.classes.filter(c=>c.g===g);return `<div style="background:#0b1f3a;border-radius:12px;padding:10px"><h3 style="margin-top:0">الصف ${C.GRADES[g]}</h3>
+   <label class="f">الفصول (افصل بينها بفاصلة)</label><input type="text" data-stc="${g}" value="${esc(cls.map(c=>c.n).join('، '))}" placeholder="مثال: 1/${g}، 2/${g}">
+   <div class="row" style="margin:6px 0"><span class="small">توليد:</span>${[0,1,2,3,4,5,6].map(n=>`<button class="btn sm ghost" data-stgen="${g}" data-n="${n}">${n}</button>`).join('')}</div>
+   ${cls.map(c=>`<label class="f" style="margin-top:8px">الفصل ${esc(c.n)} <span class="small" data-stcount="${esc(c.n)}">(${rosterNames(c.n).length} طالب)</span></label><textarea data-str="${esc(c.n)}" style="min-height:120px" placeholder="اسم في كل سطر">${esc(rosterNames(c.n).join('\n'))}</textarea>`).join('')||'<div class="small">لا توجد فصول لهذا الصف.</div>'}</div>`}).join('');
+  const box=$('stGrades');
+  box.querySelectorAll('[data-stc]').forEach(el=>el.onchange=()=>{syncRosterInputs();const g=+el.dataset.stc;const list=el.value.split(/[،,]/).map(x=>x.trim()).filter(Boolean);R.classes=R.classes.filter(c=>c.g!==g).concat(list.map(n=>({n,g}))).sort((a,b)=>clsKey(a.n)-clsKey(b.n));renderRoster()});
+  box.querySelectorAll('[data-stgen]').forEach(b=>b.onclick=()=>{syncRosterInputs();const g=+b.dataset.stgen,n=+b.dataset.n;R.classes=R.classes.filter(c=>c.g!==g).concat([...Array(n)].map((_,i)=>({n:(i+1)+'/'+g,g}))).sort((a,b)=>clsKey(a.n)-clsKey(b.n));renderRoster()});
+  box.querySelectorAll('[data-str]').forEach(el=>el.oninput=()=>{R.rosters[el.dataset.str]=parseNames(el.value);const sp=box.querySelector(`[data-stcount="${CSS.escape(el.dataset.str)}"]`);if(sp)sp.textContent=`(${R.rosters[el.dataset.str].length} طالب)`});
+  $('stBulkCls').innerHTML='<option value="">— من العمود الثاني —</option>'+R.classes.map(c=>`<option value="${esc(c.n)}">الفصل ${esc(c.n)}</option>`).join('');
+}
+function parseNames(t){return t.split(/\r?\n/).map(s=>s.replace(/\t.*$/,'').replace(/^\s*\d+[\.\-\)]?\s+/,'').trim()).filter(Boolean)}
+function syncRosterInputs(){document.querySelectorAll('[data-str]').forEach(el=>{A.roster.rosters[el.dataset.str]=parseNames(el.value)})}
+function normCls(v){const m=String(v||'').trim().match(/^(\d+)\s*[\/\-\\]\s*(\d+)$/);return m?m[1]+'/'+m[2]:String(v||'').trim()}
+function bulkRoster(){
+  syncRosterInputs();const R=A.roster,fixed=$('stBulkCls').value,rep=$('stBulkReplace').checked;const add={};let skipped=0;
+  $('stBulk').value.split(/\r?\n/).forEach(line=>{if(!line.trim())return;const parts=line.split(/\t|\s{2,}|,|،/).map(x=>x.trim()).filter(Boolean);let name=parts[0],cl=fixed;
+    if(!fixed){const c=parts.slice(1).map(normCls).find(x=>R.classes.some(k=>k.n===x));if(!c){skipped++;return}cl=c}
+    name=name.replace(/^\d+[\.\-\)]?\s+/,'');if(name.length<2){skipped++;return}(add[cl]=add[cl]||[]).push(name)});
+  let n=0;Object.entries(add).forEach(([cl,names])=>{const cur=rep?[]:(R.rosters[cl]||[]);const seen=new Set(cur.map(C.normName));names.forEach(x=>{if(!seen.has(C.normName(x))){cur.push(x);seen.add(C.normName(x));n++}});R.rosters[cl]=cur});
+  renderRoster();$('stBulk').value='';toast(`✓ أُضيف ${n} طالب${skipped?` (تجاهل ${skipped} سطر بلا فصل معروف)`:''} — لا تنسَ الحفظ`);
+}
+async function saveRoster(btn){syncRosterInputs();await busy(btn,async()=>{const j=await call('saveRoster',{year:curYear(),roster:A.roster});toast(`✓ حُفظت قوائم ${j.classes} فصول (${j.students} طالب)`);await refresh()})}
+
 /* ================= الإعدادات والأعوام ================= */
 function fillSettings(){
   const s=A.settings;$('sSchool').value=s.schoolName||'';$('sEdu').value=s.eduAdmin||'';$('sSlogan').value=s.slogan||'';$('sTeacher').value=s.teacherName||'';$('sPrincipal').value=s.principalName||'';
@@ -693,11 +735,13 @@ async function downloadBackup(){try{toast('جارٍ تجهيز النسخة ال
 async function backupResults(filter,label){const j=await call('results',filter);if(j.rows.length){download(`نسخة-نتائج-${label}.json`,JSON.stringify({type:'contest-results',rows:j.rows}));download(`نسخة-نتائج-${label}.csv`,csvOf(j.rows),'text/csv;charset=utf-8')}}
 async function startNewYear(){
   const y=String($('nyYear').value).trim();if(!/^\d{4}$/.test(y))return toast('اكتب العام بأربعة أرقام مثل 1449.',true);if(y===curYear())return toast('هذا هو العام الحالي بالفعل.',true);
-  const del=$('nyDelete').checked;const clone=[...$('nyClone').querySelectorAll('input:checked')].map(i=>i.value);
-  if(!confirm(`بدء العام الدراسي ${y}هـ؟\n• ${clone.length} مسابقة ستُنسخ كمسودة\n• ${$('nyClose').checked?'إغلاق':'إبقاء'} مسابقات الأعوام السابقة\n• ${del?'⚠️ حذف نتائج الأعوام السابقة نهائيًا':'الاحتفاظ بنتائج الأعوام السابقة'}`))return;
-  if(del&&prompt('اكتب كلمة «حذف» لتأكيد حذف نتائج الأعوام السابقة')!=='حذف')return;
-  if($('nyBackup').checked||del){if(!(await downloadBackup()))return}
-  try{const j=await call('newYear',{year:y,deleteOldResults:del,closeOld:$('nyClose').checked,cloneIds:clone});toast(`✓ بدأ العام ${y}هـ — نُسخت ${j.cloned} مسابقة${del?` وحُذفت ${j.removedResults} نتيجة`:''}`);A.rowsYear=null;A.full={};await refresh();showTab('home')}catch(e){toast('⚠️ '+e.message,true)}
+  const clone=[...$('nyClone').querySelectorAll('input:checked')].map(i=>i.value);
+  if(!confirm(`بدء العام الدراسي ${y}هـ؟\n\n⚠️ سيتم حذف نهائي لجميع بيانات الطلاب السابقة:\n• ${A.total} نتيجة\n• قوائم أسماء الطلاب\n\n• ${clone.length} مسابقة ستُنسخ للعام الجديد بدون بيانات طلاب`))return;
+  if(prompt('اكتب كلمة «حذف» لتأكيد الحذف النهائي لبيانات الطلاب')!=='حذف')return toast('تم الإلغاء.');
+  if($('nyBackup').checked){if(!(await downloadBackup()))return}
+  try{const j=await call('newYear',{year:y,closeOld:true,cloneIds:clone,keepClasses:$('nyClasses').checked,prevClasses:(A.roster&&A.roster.classes)||[]});
+    toast(`✓ بدأ العام ${y}هـ — حُذفت ${j.removedResults} نتيجة وقوائم الطلاب السابقة، ونُسخت ${j.cloned} مسابقة. أضف الآن أسماء طلاب العام الجديد.`);
+    A.rowsYear=null;A.rows=[];A.full={};await refresh();showTab('students')}catch(e){toast('⚠️ '+e.message,true)}
 }
 async function confirmedDelete(desc,filter,payload,label){
   if(!confirm(desc))return;if(prompt('اكتب كلمة «حذف» للتأكيد')!=='حذف')return toast('تم الإلغاء.');
@@ -716,6 +760,7 @@ async function restoreBackup(inp){
     for(const a of d.assets||[])await call('uploadAsset',{id:a.id,dataUrl:a.dataUrl});
     for(const c of d.comps)await call('saveComp',{id:c.id,year:c.year,status:c.status,config:c.config});
     for(let i=0;i<d.results.length;i+=300)await call('importResults',{rows:d.results.slice(i,i+300)});
+    if(d.roster&&d.roster.data&&d.roster.year)await call('saveRoster',{year:d.roster.year,roster:d.roster.data});
     toast('✓ تمت الاستعادة بنجاح');A.rowsYear=null;A.full={};refresh();
   }catch(e){toast('⚠️ '+e.message,true)}
 }

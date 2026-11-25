@@ -16,7 +16,8 @@
 const ADMIN_KEY = 'ضع-رمزك-السري-هنا'; // لا حاجة لتغييره: الرمز الذي تكتبه عند أول دخول للوحة المعلم يصبح رمزك
 const SPREADSHEET_ID = ''; // اتركه فارغًا إذا كان السكربت مربوطًا بالجدول نفسه
 
-const SH = { settings: 'الإعدادات', comps: 'المسابقات', results: 'النتائج', assets: 'الصور' };
+const SH = { settings: 'الإعدادات', comps: 'المسابقات', results: 'النتائج', assets: 'الصور', students: 'قوائم الطلاب' };
+const STU_H = ['year', 'updatedAt', 'data'];
 const CHUNK = 45000;
 const RESULT_H = ['submissionId', 'year', 'compId', 'compTitle', 'grade', 'className', 'studentName', 'normName',
   'caseNos', 'caseTitles', 'score', 'maxScore', 'percentage', 'level', 'durationSec', 'startedAt', 'submittedAt',
@@ -75,6 +76,8 @@ const ADMIN_ACTIONS = {
   importResults: api_importResults_,
   saveSettings: api_saveSettings_,
   newYear: api_newYear_,
+  getRoster: api_getRoster_,
+  saveRoster: api_saveRoster_,
   backup: api_backup_
 };
 
@@ -205,6 +208,51 @@ function publicSettings_() {
   return { year: s.year, schoolName: s.schoolName, eduAdmin: s.eduAdmin, teacherName: s.teacherName, slogan: s.slogan, logo: s.logo };
 }
 
+/* ============ قوائم طلاب العام ============ */
+function rosterRow_(year) {
+  const s = sheet_(SH.students, STU_H);
+  const v = values_(s);
+  for (let i = 1; i < v.length; i++) if (String(v[i][0]) === String(year)) return { s: s, r: i + 1, row: v[i] };
+  return { s: s, r: -1, row: null };
+}
+const ROSTER_CACHE_ = {};
+function yearRoster_(year) {
+  if (ROSTER_CACHE_[year]) return ROSTER_CACHE_[year];
+  const f = rosterRow_(year);
+  let d = { classes: [], rosters: {} };
+  if (f.row) { try { d = JSON.parse(unchunk_(f.row, 2) || '{}'); } catch (e) { } }
+  d.classes = d.classes || []; d.rosters = d.rosters || {};
+  return (ROSTER_CACHE_[year] = d);
+}
+function rosterFor_(c, className) {
+  const own = ((c.config || {}).rosters || {})[className];
+  if (Array.isArray(own) && own.length) return own;
+  const y = yearRoster_(c.year).rosters[className];
+  return Array.isArray(y) && y.length ? y : null;
+}
+function api_getRoster_(p) {
+  const year = safe_(p.year) || getSettings_().year;
+  return { ok: true, year: year, roster: yearRoster_(year) };
+}
+function api_saveRoster_(p) {
+  const year = safe_(p.year) || getSettings_().year;
+  const d = p.roster || {};
+  const classes = (Array.isArray(d.classes) ? d.classes : []).map(c => ({ n: safe_(c.n), g: Number(c.g) || 1 })).filter(c => c.n);
+  const rosters = {};
+  classes.forEach(c => {
+    const list = (d.rosters && d.rosters[c.n]) || [];
+    rosters[c.n] = list.map(x => safe_(x).replace(/\s+/g, ' ')).filter(x => x.length > 1);
+  });
+  return withLock_(() => {
+    const f = rosterRow_(year);
+    const row = [year, new Date().toISOString()].concat(chunks_(JSON.stringify({ classes: classes, rosters: rosters })));
+    writeRow_(f.s, f.r > 0 ? f.r : f.s.getLastRow() + 1, row);
+    delete ROSTER_CACHE_[year];
+    const total = Object.keys(rosters).reduce((t, k) => t + rosters[k].length, 0);
+    return { ok: true, year: year, classes: classes.length, students: total };
+  });
+}
+
 /* ============ المسابقات ============ */
 function compsTable_() {
   const s = sheet_(SH.comps, COMP_H);
@@ -251,7 +299,11 @@ function publicComp_(c) {
     maxScore: cfg.mode === 'all' ? maxScoreOf_(cfg, allIdx) : (cases.length ? maxScoreOf_(cfg, [0]) : 0)
   };
   if (meta.mode === 'choose') meta.caseList = cases.map((k, i) => ({ no: i + 1, title: k.title, shortName: k.shortName, image: k.image }));
-  if (cfg.rosterAutocomplete && cfg.rosters) meta.rosters = cfg.rosters;
+  if (cfg.rosterAutocomplete) {
+    const r = {};
+    (cfg.classes || []).forEach(cl => { const list = rosterFor_(c, cl.n); if (list) r[cl.n] = list; });
+    meta.rosters = r;
+  }
   return meta;
 }
 function validateConfig_(cfg) {
@@ -312,7 +364,7 @@ function assignment_(c, className, name, caseNo) {
     return [k];
   }
   const norm = normName_(name);
-  const roster = (cfg.rosters || {})[className];
+  const roster = rosterFor_(c, className);
   if (Array.isArray(roster)) {
     const idx = roster.map(normName_).indexOf(norm);
     if (idx >= 0) return [idx % n];
@@ -478,7 +530,8 @@ function api_adminInit_() {
       grades: cfg.grades || [], classes: cfg.classes || [], mode: cfg.mode || 'single', caseCount: (cfg.cases || []).length,
       results: counts.byComp[c.id] || 0 };
   });
-  return { ok: true, settings: getSettings_(), comps: comps, years: counts.byYear, totalResults: counts.total };
+  const st = getSettings_();
+  return { ok: true, settings: st, comps: comps, years: counts.byYear, totalResults: counts.total, roster: yearRoster_(st.year) };
 }
 function api_getCompFull_(p) {
   const c = findComp_(p.id);
@@ -598,25 +651,48 @@ function api_newYear_(p) {
   return withLock_(() => {
     const old = getSettings_().year;
     setSettings_({ year: year });
-    let removed = 0, cloned = 0, closed = 0;
-    if (p.deleteOldResults) removed = deleteResultsWhere_(r => String(r[1]) !== year);
+    // 1) حذف نهائي لجميع نتائج الطلاب في الأعوام السابقة
+    const removed = deleteResultsWhere_(r => String(r[1]) !== year);
+    // 2) حذف نهائي لقوائم أسماء الطلاب في الأعوام السابقة
+    const st = sheet_(SH.students, STU_H);
+    const sv = values_(st);
+    let rosterYears = 0;
+    for (let i = sv.length - 1; i >= 1; i--) if (sv[i][0] !== '' && String(sv[i][0]) !== year) { st.deleteRow(i + 1); rosterYears++; }
+    Object.keys(ROSTER_CACHE_).forEach(k => delete ROSTER_CACHE_[k]);
+    // 3) مسح أسماء الطلاب المخزنة داخل مسابقات الأعوام السابقة وإغلاقها (تبقى الأسئلة للاستخدام لاحقًا)
     const t = compsTable_();
     const now = new Date().toISOString();
+    let closed = 0;
     for (let i = 1; i < t.v.length; i++) {
       const row = t.v[i];
       if (!row[0] || String(row[1]) === year) continue;
-      if (p.closeOld && String(row[3]) === 'open') { t.s.getRange(i + 1, 4).setValue('closed'); closed++; }
+      const c = compFromRow_(row, true);
+      const cfg = c.config || {};
+      cfg.rosters = {};
+      const status = c.status === 'open' ? 'closed' : c.status;
+      if (c.status === 'open') closed++;
+      writeRow_(t.s, i + 1, [c.id, c.year, c.title, status, now, c.createdAt].concat(chunks_(JSON.stringify(cfg))));
     }
+    // 4) نسخ المسابقات المختارة إلى العام الجديد بدون أي بيانات طلاب
+    let cloned = 0;
     (Array.isArray(p.cloneIds) ? p.cloneIds : []).forEach(id => {
       const c = findComp_(id);
       if (!c) return;
       const cfg = c.config;
       cfg.title = String(cfg.title || '').replace(new RegExp(old, 'g'), year);
+      cfg.rosters = {};
       const row = [uid_('c'), year, safe_(cfg.title), 'draft', now, now].concat(chunks_(JSON.stringify(cfg)));
       writeRow_(t.s, t.s.getLastRow() + 1, row);
       cloned++;
     });
-    return { ok: true, year: year, removedResults: removed, cloned: cloned, closed: closed };
+    // 5) نقل فصول المدرسة (بدون أسماء) إلى العام الجديد لتسهيل إدخال الطلاب الجدد
+    if (p.keepClasses) {
+      const prev = p.prevClasses || [];
+      const classes = prev.map(c => ({ n: safe_(c.n), g: Number(c.g) || 1 })).filter(c => c.n);
+      const rosters = {}; classes.forEach(c => { rosters[c.n] = []; });
+      writeRow_(st, st.getLastRow() + 1, [year, now].concat(chunks_(JSON.stringify({ classes: classes, rosters: rosters }))));
+    }
+    return { ok: true, year: year, removedResults: removed, removedRosters: rosterYears, cloned: cloned, closed: closed };
   });
 }
 function api_backup_() {
@@ -625,5 +701,6 @@ function api_backup_() {
   const av = values_(sheet_(SH.assets, ASSET_H));
   const assets = [];
   for (let i = 1; i < av.length; i++) if (av[i][0]) assets.push({ id: String(av[i][0]), dataUrl: unchunk_(av[i], 2) });
-  return { ok: true, version: 2, createdAt: new Date().toISOString(), settings: getSettings_(), comps: comps, results: results, assets: assets };
+  const stg = getSettings_();
+  return { ok: true, version: 2, createdAt: new Date().toISOString(), settings: stg, comps: comps, results: results, assets: assets, roster: { year: stg.year, data: yearRoster_(stg.year) } };
 }
