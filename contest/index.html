@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071326">
+<title>منصة مسابقات المحقق العلمي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#071326;--panel:#102746;--panel2:#0c203b;--line:#2b5784;--paper:#fff9e9;--ink:#18202d;--gold:#e5ae3d;--gold2:#c48d24;--teal:#20a896;--red:#c9464e;--blue:#2c6da8;--muted:#a9c0df;--txt:#e9f1fc}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:Tajawal,Tahoma,"Segoe UI",Arial,sans-serif;font-weight:700;color:#fff;background:radial-gradient(900px 520px at 100% -10%,#173c70 0,transparent 60%),radial-gradient(700px 420px at -10% 110%,#0f4a52 0,transparent 60%),var(--bg);background-attachment:fixed}
+button,input,select,textarea{font:inherit}
+.wrap{max-width:1100px;margin:auto;padding:16px}
+.topbar{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#123158,#0c203b);border:1px solid #2f5f90;border-radius:20px;padding:14px 16px;box-shadow:0 16px 34px #0005}
+.logo{width:78px;height:78px;object-fit:contain;background:#fff;border-radius:16px;padding:4px;flex:0 0 auto}
+.topbar h1{margin:0;font-size:28px;font-weight:900;line-height:1.3}
+.topbar p{margin:4px 0 0;color:#d7e5f8;font-size:15px;line-height:1.7}
+.yearbadge{margin-right:auto;background:#0a1b33;border:1px solid #3b6898;padding:7px 12px;border-radius:999px;color:#ffe3a1;font-weight:900;white-space:nowrap}
+.card{margin-top:16px;background:linear-gradient(180deg,#102746,#0d2039);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 14px 30px #0004}
+h2{margin:0 0 10px;font-size:25px;font-weight:900}
+.muted{color:var(--muted)}
+.desc{color:#d8e5f7;font-size:17px;line-height:2}
+.primary{border:none;border-radius:14px;padding:14px 22px;background:linear-gradient(180deg,#f0c35a,var(--gold2));color:#251a04;font-weight:900;font-size:19px;cursor:pointer;box-shadow:0 8px 18px #0003;transition:transform .12s}
+.primary:hover{transform:translateY(-1px)}.primary:disabled{opacity:.6;cursor:wait;transform:none}
+.secondary{border:1px solid #4074aa;border-radius:12px;padding:11px 16px;background:#173b67;color:#fff;font-weight:900;cursor:pointer}
+.notice{margin-top:14px;padding:11px 13px;border-radius:12px;background:#0b1d36;border:1px dashed #3d6691;color:#cfe0f4;font-size:15px}
+.notice.warn{color:#ffe2a4;border-color:#a77a25}
+.error{color:#ffb3b7;font-weight:900;margin-top:10px;min-height:1em}
+.hidden{display:none!important}
+/* lobby */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.chip{background:#0f2a4c;border:1px solid #376494;border-radius:999px;padding:7px 13px;font-weight:800;font-size:14px;color:#dceaff;cursor:pointer}
+.chip.on{background:#f8edc8;color:#2b2315;border-color:#e0c776}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-top:14px}
+.comp{position:relative;background:linear-gradient(160deg,#143563,#0c2140);border:1px solid #33669a;border-radius:18px;padding:18px;cursor:pointer;overflow:hidden;transition:.15s}
+.comp:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:0 14px 28px #0006}
+.comp:before{content:"🔬";position:absolute;left:-10px;bottom:-22px;font-size:110px;opacity:.07}
+.comp h3{margin:0 0 6px;font-size:21px;line-height:1.5}
+.comp .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-size:13px;background:#0a1d37;border:1px solid #2f5b88;border-radius:999px;padding:4px 10px;color:#cfe0f4}
+.tag.gold{color:#2b2315;background:#f3d589;border-color:#e2bb59}
+/* join */
+.join-head{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.join-icon{width:70px;height:70px;border-radius:18px;display:grid;place-items:center;font-size:38px;background:linear-gradient(160deg,#f0c35a,#c48d24)}
+.rules{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.rule{background:#0b1f3a;border:1px solid #315c88;border-radius:12px;padding:8px 12px;font-size:14px;color:#dbe8f8}
+.rule b{color:#ffd56b}
+.fields{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-top:14px}
+.field label{display:block;margin-bottom:7px;font-size:16px;font-weight:900;color:#e6f0ff}
+.field input,.field select{width:100%;background:#0a1d37;color:#fff;border:2px solid #3b699a;border-radius:12px;padding:13px;font-size:18px;font-weight:800}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gold)}
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
+.pick-item{background:#0b1f3a;border:2px solid #315c88;border-radius:14px;padding:10px;cursor:pointer;text-align:center;font-weight:900}
+.pick-item img{width:100%;height:110px;object-fit:cover;border-radius:10px;background:#16345c;margin-bottom:6px}
+.pick-item.on{border-color:var(--gold);background:#1a3a63}
+/* activity */
+.strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0 10px}
+.schip{background:#102a4b;border:1px solid #376494;border-radius:999px;padding:8px 13px;font-weight:900;font-size:15px}
+.save{margin-right:auto;color:#a9f4cb;font-size:14px}
+.timer{background:#3a1d0c;border:1px solid #c27b2c;color:#ffd9a8;border-radius:999px;padding:8px 14px;font-weight:900;font-variant-numeric:tabular-nums}
+.timer.low{background:#5a1218;border-color:#ff6b75;color:#ffd0d4;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.progress-shell{height:12px;background:#0b1e38;border-radius:999px;overflow:hidden;border:1px solid #294d73}
+.progress{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--gold));transition:.3s}
+.stepper{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.step{flex:1;min-width:110px;padding:9px;border-radius:12px;background:#112b4c;border:1px solid #315c88;text-align:center;cursor:pointer;font-size:14px}
+.step.on{background:#f8edc8;color:#2b2315;border-color:#e0c776}.step.done:after{content:" ✓";color:#18b07c}
+.case-head{display:grid;grid-template-columns:1fr 1.1fr;gap:18px;align-items:start}
+.evidence{background:#f5eac4;border-radius:16px;padding:8px;transform:rotate(-.6deg);box-shadow:0 12px 28px #0006;position:relative}
+.evidence:after{content:"📎";position:absolute;top:-16px;right:18px;font-size:30px}
+.evidence img{width:100%;display:block;border-radius:10px;cursor:zoom-in}
+.case-title h2{font-size:28px;margin:0 0 8px}
+.case-title p{font-size:16px;color:#d4e1f4;line-height:1.9}
+.stamp{display:inline-block;border:3px solid #e5ae3d;color:#ffd56b;border-radius:10px;padding:4px 12px;transform:rotate(-4deg);font-weight:900;letter-spacing:1px;margin-bottom:8px}
+.section{margin:18px 0 4px;font-size:19px;font-weight:900;color:#ffd56b}
+.q{background:var(--paper);color:var(--ink);border-radius:15px;padding:15px;margin:12px 0;border:1px solid #e2d7b8;transition:.2s}
+.q.sub{margin-top:-6px;border-top:2px dashed #d7ca9e;border-radius:0 0 15px 15px}
+.q.answered{box-shadow:inset -5px 0 0 var(--teal)}
+.q.missing{box-shadow:0 0 0 3px #e86a72}
+.q-title{font-size:19px;font-weight:900;line-height:1.7;margin-bottom:10px}
+.num{display:inline-flex;min-width:34px;height:34px;padding:0 6px;align-items:center;justify-content:center;border-radius:10px;background:#102b4d;color:#fff;margin-left:8px}
+.pts{font-size:13px;color:#746a53}
+.opts{display:grid;gap:8px}.opts.two{grid-template-columns:1fr 1fr}
+.opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:right;border:2px solid #d7ca9e;background:#fffdf7;color:#1f2733;border-radius:12px;padding:11px 13px;font-weight:800;cursor:pointer;line-height:1.65;transition:.12s}
+.opt:hover{border-color:#9db8d6}
+.opt .l{flex:0 0 28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#efe5c6;color:#5d4c1e;font-size:14px}
+.opt.sel{border-color:#2c6da8;background:#e7f1ff;box-shadow:0 0 0 2px #2c6da833}.opt.sel .l{background:#2c6da8;color:#fff}
+.reflection{width:100%;min-height:70px;border:1px solid #d1c293;border-radius:10px;padding:10px;background:#fffdf8;color:#222;resize:vertical}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+.submit-area{text-align:center;margin-top:20px}
+.status{margin:10px 0;color:#d9e6f5}
+/* result */
+.result{max-width:860px;margin:20px auto;text-align:center;position:relative;overflow:hidden}
+.ring{--p:0;width:190px;height:190px;border-radius:50%;margin:10px auto;display:grid;place-items:center;background:conic-gradient(var(--c,#e5ae3d) calc(var(--p)*1%),#183659 0)}
+.ring>div{width:150px;height:150px;border-radius:50%;background:#0d2039;display:grid;place-items:center;align-content:center}
+.ring b{font-size:44px;color:#ffd56b;line-height:1}.ring span{color:#cfe0f4;font-size:15px}
+.badge-big{font-size:64px;line-height:1;margin-top:6px;animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.badge-name{font-size:26px;font-weight:900;margin:6px 0}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.metric{background:#0b1f3a;border:1px solid #335d89;border-radius:14px;padding:12px}
+.metric b{display:block;font-size:24px;color:#ffd56b;margin-top:4px}
+.review{text-align:right;margin-top:14px}
+.rv{background:#0b1f3a;border:1px solid #294e75;border-radius:12px;padding:10px 12px;margin:7px 0;line-height:1.8}
+.rv.ok{border-right:6px solid var(--teal)}.rv.bad{border-right:6px solid var(--red)}
+.rv small{display:block;color:#bcd0e8}
+.zoom{position:fixed;inset:0;background:#000d;z-index:50;display:grid;place-items:center;padding:14px;cursor:zoom-out}
+.zoom img{max-width:100%;max-height:100%;border-radius:12px}
+.modal{position:fixed;inset:0;background:#000b;z-index:40;display:grid;place-items:center;padding:16px}
+.modal .box{max-width:480px;width:100%;background:var(--panel);border:1px solid #3c6c9d;border-radius:18px;padding:20px;text-align:center}
+.loader{width:46px;height:46px;border:5px solid #2b5784;border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:30px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+footer.foot{text-align:center;color:#7f9cc0;font-size:13px;margin:26px 0 8px}
+@media(max-width:820px){.case-head{grid-template-columns:1fr}.fields{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.yearbadge{display:none}.topbar h1{font-size:22px}.logo{width:62px;height:62px}}
+@media(max-width:520px){.wrap{padding:10px}.case-title h2{font-size:23px}.q-title{font-size:17px}.opts.two{grid-template-columns:1fr}.metrics{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <img class="logo" id="logo" src="assets/logo.jpg" alt="شعار المدرسة">
+    <div>
+      <h1 id="hdrTitle">منصة مسابقات المحقق العلمي</h1>
+      <p id="hdrSub">مدرسة أبي الدرداء المتوسطة</p>
+    </div>
+    <div class="yearbadge" id="yearBadge"></div>
+  </header>
+
+  <div id="loading" class="card"><div class="loader"></div><p class="muted" style="text-align:center">جارٍ التحميل…</p></div>
+
+  <!-- قائمة المسابقات -->
+  <section id="lobby" class="card hidden">
+    <h2>🔎 المسابقات المتاحة الآن</h2>
+    <div class="desc">اختر المسابقة التي طلبها معلمك.</div>
+    <div class="chips" id="gradeChips"></div>
+    <div class="grid" id="compGrid"></div>
+    <div id="lobbyEmpty" class="notice hidden">لا توجد مسابقات مفتوحة حاليًا. راجع معلمك.</div>
+  </section>
+
+  <!-- بيانات الطالب -->
+  <section id="join" class="card hidden">
+    <div class="join-head"><div class="join-icon">🕵️</div><div><h2 id="jTitle"></h2><div class="muted" id="jSub"></div></div></div>
+    <div class="desc" id="jDesc" style="margin-top:10px"></div>
+    <div class="rules" id="jRules"></div>
+    <div class="fields">
+      <div class="field"><label for="studentName">اسم الطالب</label><input id="studentName" list="rosterList" autocomplete="name" placeholder="اكتب اسمك كاملًا"><datalist id="rosterList"></datalist></div>
+      <div class="field" id="gradeField"><label for="gradeSel">الصف</label><select id="gradeSel"></select></div>
+      <div class="field"><label for="classSel">الفصل</label><select id="classSel"></select></div>
+    </div>
+    <div id="choosePanel" class="hidden"><div class="section">اختر نشاطك</div><div class="pick" id="pickGrid"></div></div>
+    <div id="pendingBox" class="notice warn hidden"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+      <button id="startBtn" class="primary">🚀 ابدأ المهمة</button>
+      <button id="backLobby" class="secondary hidden">→ كل المسابقات</button>
+    </div>
+    <div id="startError" class="error"></div>
+  </section>
+
+  <!-- النشاط -->
+  <section id="activity" class="hidden">
+    <div class="strip">
+      <span class="schip" id="cStudent"></span><span class="schip" id="cClass"></span><span class="schip" id="cCase"></span>
+      <span class="timer hidden" id="timer">⏱ 00:00</span>
+      <span class="save" id="saveMsg">✓ الحفظ التلقائي مفعّل</span>
+    </div>
+    <div class="progress-shell"><div class="progress" id="bar"></div></div>
+    <div class="stepper hidden" id="stepper"></div>
+    <div id="caseBox"></div>
+    <div class="submit-area">
+      <div class="status" id="doneStatus"></div>
+      <button id="submitBtn" class="primary">📨 إنهاء المهمة وإرسال النتيجة</button>
+      <div id="submitError" class="error"></div>
+    </div>
+  </section>
+
+  <!-- النتيجة -->
+  <section id="result" class="card result hidden">
+    <h2>🎉 أحسنت! تم إنهاء المهمة</h2>
+    <p id="rName" class="muted"></p>
+    <div class="ring" id="ring"><div><b id="rPct">0%</b><span id="rScore"></span></div></div>
+    <div class="badge-big" id="rIcon"></div>
+    <div class="badge-name" id="rBadge"></div>
+    <div class="muted" id="rMsg"></div>
+    <div class="metrics" id="rMetrics"></div>
+    <div class="review" id="rReview"></div>
+    <div class="notice" id="rSent"></div>
+  </section>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+<canvas id="confetti" class="hidden"></canvas>
+
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const show=(id,on=true)=>$(id).classList.toggle('hidden',!on);
+const S={settings:null,comps:[],comp:null,profile:null,cases:[],answers:{},reflection:'',startedAt:null,active:0,maxScore:0,timeLimit:0,submissionId:null,chosen:null,tick:null};
+const DRAFT=id=>'contest_draft_'+id;
+const PENDING='contest_pending_v2';
+
+function screen(id){['loading','lobby','join','activity','result'].forEach(s=>show(s,s===id));scrollTo({top:0,behavior:'smooth'})}
+function applySettings(st){
+  if(!st)return;S.settings=st;
+  if(st.schoolName)$('hdrSub').textContent=st.schoolName;
+  if(st.year)$('yearBadge').textContent='العام الدراسي '+st.year+'هـ';
+  if(st.logo){C.resolveImage(st.logo).then(src=>{if(src)$('logo').src=src}).catch(()=>{})}
+  $('foot').textContent=(st.schoolName||'')+(st.teacherName?' — معلم المادة: '+st.teacherName:'');
+}
+
+/* ---------- البداية ---------- */
+async function boot(){
+  if(!C.getApi()){screen('lobby');show('lobbyEmpty');$('lobbyEmpty').textContent='لم يتم ربط المنصة بالخادم بعد. اطلب من معلمك رابط المسابقة.';return}
+  retryPending(true);
+  const id=C.qs.get('c');
+  try{
+    if(id){
+      const j=await C.api('getComp',{id});
+      if(!j.ok)throw new Error(j.error);
+      applySettings(j.settings);openJoin(j.comp,false);
+    }else{
+      const j=await C.api('listOpen');
+      if(!j.ok)throw new Error(j.error);
+      applySettings(j.settings);S.comps=j.comps||[];
+      if(S.comps.length===1){openJoin(S.comps[0],true);return}
+      renderLobby();
+    }
+  }catch(e){screen('lobby');show('lobbyEmpty');$('lobbyEmpty').textContent='⚠️ '+e.message}
+}
+function renderLobby(g=''){
+  screen('lobby');
+  const grades=[...new Set(S.comps.flatMap(c=>c.grades||[]))].sort();
+  $('gradeChips').innerHTML=grades.length>1?[`<span class="chip ${g===''?'on':''}" data-g="">الكل</span>`,...grades.map(x=>`<span class="chip ${String(g)===String(x)?'on':''}" data-g="${x}">${C.gradeName(x)}</span>`)].join(''):'';
+  $('gradeChips').querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>renderLobby(ch.dataset.g));
+  const list=S.comps.filter(c=>!g||(c.grades||[]).map(String).includes(String(g)));
+  $('compGrid').innerHTML=list.map((c,i)=>`<div class="comp" data-i="${S.comps.indexOf(c)}"><h3>${C.esc(c.title)}</h3><div class="muted">${C.esc(c.subtitle||'')}</div><div class="meta"><span class="tag gold">${C.esc(C.gradesLabel(c.grades))}</span><span class="tag">${c.caseCount===1?'نشاط واحد':c.caseCount===2?'نشاطان':c.caseCount<=10?c.caseCount+' أنشطة':c.caseCount+' نشاطًا'}</span>${c.timeLimitMin?`<span class="tag">⏱ ${c.timeLimitMin} دقيقة</span>`:''}<span class="tag">${C.esc(C.MODES[c.mode]||'')}</span></div></div>`).join('');
+  $('compGrid').querySelectorAll('.comp').forEach(el=>el.onclick=()=>openJoin(S.comps[+el.dataset.i],S.comps.length>1));
+  show('lobbyEmpty',!list.length);
+}
+
+/* ---------- بيانات الطالب ---------- */
+function openJoin(comp,canBack){
+  S.comp=comp;screen('join');
+  $('jTitle').textContent=comp.title;$('jSub').textContent=comp.subtitle||'';$('jDesc').textContent=comp.description||'';
+  document.title=comp.title+' | منصة مسابقات المحقق العلمي';
+  const qCount=comp.mode==='all'?'جميع الأنشطة':'نشاط واحد';
+  $('jRules').innerHTML=[
+    `<span class="rule">🎓 <b>${C.esc(C.gradesLabel(comp.grades))}</b></span>`,
+    `<span class="rule">🧩 ${C.esc(C.MODES[comp.mode]||qCount)}</span>`,
+    `<span class="rule">🏆 الدرجة الكاملة: <b>${comp.maxScore}</b></span>`,
+    comp.timeLimitMin?`<span class="rule">⏱ الوقت: <b>${comp.timeLimitMin} دقيقة</b></span>`:`<span class="rule">⏱ بدون وقت محدد</span>`,
+    `<span class="rule">🔁 عدد المحاولات: <b>${comp.attempts}</b></span>`
+  ].join('');
+  const grades=[...new Set((comp.classes||[]).map(c=>c.g))].sort();
+  show('gradeField',grades.length>1);
+  $('gradeSel').innerHTML=grades.map(g=>`<option value="${g}">${C.gradeName(g)}</option>`).join('');
+  const fillClasses=()=>{const g=grades.length>1?$('gradeSel').value:grades[0];$('classSel').innerHTML='<option value="">اختر الفصل</option>'+(comp.classes||[]).filter(c=>String(c.g)===String(g)).map(c=>`<option value="${C.esc(c.n)}">الفصل ${C.esc(c.n)}</option>`).join('');if($('classSel').options.length===2)$('classSel').selectedIndex=1;fillRoster()};
+  const fillRoster=()=>{const r=comp.rosters&&comp.rosters[$('classSel').value];$('rosterList').innerHTML=Array.isArray(r)?r.map(n=>`<option value="${C.esc(n)}">`).join(''):''};
+  $('gradeSel').onchange=fillClasses;$('classSel').onchange=fillRoster;fillClasses();
+  show('choosePanel',comp.mode==='choose');S.chosen=null;
+  if(comp.mode==='choose'){
+    $('pickGrid').innerHTML=(comp.caseList||[]).map(k=>`<div class="pick-item" data-no="${k.no}">${k.image?`<img data-ref="${C.esc(k.image)}" alt="">`:''}<div>${k.no}. ${C.esc(k.title)}</div></div>`).join('');
+    $('pickGrid').querySelectorAll('.pick-item').forEach(el=>el.onclick=()=>{S.chosen=+el.dataset.no;$('pickGrid').querySelectorAll('.pick-item').forEach(x=>x.classList.toggle('on',x===el))});
+    C.hydrateImages($('pickGrid'));
+  }
+  show('backLobby',!!canBack);$('backLobby').onclick=()=>renderLobby();
+  // استئناف مسودة
+  const d=loadDraft();
+  if(d&&d.profile){
+    $('studentName').value=d.profile.name;
+    const cl=(comp.classes||[]).find(c=>c.n===d.profile.className);
+    if(cl){if(grades.length>1){$('gradeSel').value=cl.g;fillClasses()}$('classSel').value=cl.n;fillRoster()}
+    $('startBtn').textContent='▶️ متابعة المهمة';
+  }else $('startBtn').textContent='🚀 ابدأ المهمة';
+  $('startError').textContent='';
+  showPendingNotice();
+}
+
+function loadDraft(){try{return JSON.parse(localStorage.getItem(DRAFT(S.comp.id))||'null')}catch(e){return null}}
+function saveDraft(){try{localStorage.setItem(DRAFT(S.comp.id),JSON.stringify({profile:S.profile,cases:S.cases,answers:S.answers,reflection:S.reflection,startedAt:S.startedAt,maxScore:S.maxScore,timeLimit:S.timeLimit,submissionId:S.submissionId,chosen:S.chosen}));$('saveMsg').textContent='✓ تم الحفظ تلقائيًا'}catch(e){}}
+function clearDraft(){try{localStorage.removeItem(DRAFT(S.comp.id))}catch(e){}}
+
+async function start(){
+  const name=$('studentName').value.trim().replace(/\s+/g,' '),cl=$('classSel').value;
+  if(name.split(' ').length<2||name.length<5){$('startError').textContent='اكتب اسمك كاملًا (الاسم الأول واسم الأب على الأقل).';return}
+  if(!cl){$('startError').textContent='اختر فصلك.';return}
+  const d=loadDraft();
+  const same=d&&d.profile&&C.normName(d.profile.name)===C.normName(name)&&d.profile.className===cl&&d.cases&&d.cases.length;
+  if(S.comp.mode==='choose'&&!same&&!S.chosen){$('startError').textContent='اختر النشاط الذي تريد حلّه.';return}
+  const btn=$('startBtn');btn.disabled=true;$('startError').textContent='جارٍ التحقق من المشاركة…';
+  try{
+    const j=await C.api('start',{compId:S.comp.id,studentName:name,className:cl,caseNo:same?d.chosen:S.chosen});
+    if(!j.ok)throw new Error(j.error);
+    if(j.submitted){$('startError').textContent='سبق لك المشاركة في هذه المسابقة. راجع معلمك إذا احتجت محاولة جديدة.';return}
+    $('startError').textContent='';
+    S.profile={name,className:cl};
+    if(same){Object.assign(S,{cases:d.cases,answers:d.answers||{},reflection:d.reflection||'',startedAt:d.startedAt,maxScore:d.maxScore,timeLimit:d.timeLimit||0,submissionId:d.submissionId,chosen:d.chosen})}
+    else{S.cases=j.cases;S.answers={};S.cases.forEach(k=>S.answers[k.no]=k.questions.map(()=>null));S.reflection='';S.startedAt=new Date().toISOString();S.maxScore=j.maxScore;S.timeLimit=j.timeLimitMin||0;S.submissionId=Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+    S.active=0;saveDraft();openActivity();
+  }catch(e){$('startError').textContent='⚠️ '+e.message}
+  finally{btn.disabled=false}
+}
+
+/* ---------- النشاط ---------- */
+function perm(n,seed){const a=[...Array(n).keys()];let h=C.hash(seed);for(let i=n-1;i>0;i--){h=Math.imul(h^(h>>>15),2246822507)>>>0;const j=h%(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function openActivity(){
+  screen('activity');
+  $('cStudent').textContent='👤 '+S.profile.name;$('cClass').textContent='🏫 الفصل '+S.profile.className;
+  $('cCase').textContent=S.cases.length===1?'🧪 نشاطك: '+S.cases[0].no+' — '+(S.cases[0].shortName||S.cases[0].title):'🧪 عدد الأنشطة: '+S.cases.length;
+  show('stepper',S.cases.length>1);
+  renderCase();startTimer();
+}
+function renderStepper(){
+  $('stepper').innerHTML=S.cases.map((k,i)=>`<div class="step ${i===S.active?'on':''} ${caseDone(k)?'done':''}" data-i="${i}">${i+1}. ${C.esc(k.shortName||k.title)}</div>`).join('');
+  $('stepper').querySelectorAll('.step').forEach(el=>el.onclick=()=>{S.active=+el.dataset.i;renderCase();scrollTo({top:0,behavior:'smooth'})});
+}
+function caseDone(k){return (S.answers[k.no]||[]).every(v=>v!==null)}
+const LETTERS=['أ','ب','ج','د','هـ','و','ز','ح'];
+function renderCase(){
+  const k=S.cases[S.active];renderStepper();
+  let n=0;
+  const qHtml=k.questions.map((q,j)=>{
+    if(!q.sub)n++;
+    const order=S.comp.shuffleOptions&&q.layout!=='two'?perm(q.options.length,S.profile.name+'|'+k.no+'|'+j):[...q.options.keys()];
+    return `${q.section?`<div class="section">${C.esc(q.section)}</div>`:''}<div class="q ${q.sub?'sub':''}" id="q_${j}"><div class="q-title">${q.sub?'':`<span class="num">${n}</span>`}${C.esc(q.text)} <span class="pts">(${q.points} ${q.points>2?'درجات':q.points==2?'درجتان':'درجة'})</span></div><div class="opts ${q.layout==='two'?'two':''}">${order.map((oi,pos)=>`<button type="button" class="opt" data-q="${j}" data-v="${oi}"><span class="l">${LETTERS[pos]||pos+1}</span><span>${C.esc(q.options[oi])}</span></button>`).join('')}</div></div>`;
+  }).join('');
+  $('caseBox').innerHTML=`<div class="card"><div class="case-head">${k.image?`<div class="evidence"><img data-ref="${C.esc(k.image)}" alt="${C.esc(k.title)}" id="evImg"></div>`:''}<div class="case-title"><span class="stamp">ملف القضية ${k.no}</span><h2>${C.esc(k.title)}</h2><p>${C.esc(k.intro||'اقرأ جيدًا ثم أجب عن جميع الأسئلة.')}</p></div></div>${qHtml}
+  ${S.comp.allowReflection!==false&&S.active===S.cases.length-1?`<div class="q"><div class="q-title">✍️ ملاحظة أو تفسير إضافي <span class="pts">(اختياري وغير مقيّم)</span></div><textarea class="reflection" id="refl" placeholder="اكتب ملاحظتك إن رغبت…"></textarea></div>`:''}
+  ${S.cases.length>1?`<div class="nav"><button class="secondary" id="prevC" ${S.active===0?'disabled':''}>→ السابق</button><button class="secondary" id="nextC" ${S.active===S.cases.length-1?'disabled':''}>التالي ←</button></div>`:''}</div>`;
+  $('caseBox').classList.toggle('hidden',false);
+  if(!k.image)$('caseBox').querySelector('.case-head').style.gridTemplateColumns='1fr';
+  C.hydrateImages($('caseBox')).then(()=>{const im=$('evImg');if(im)im.onclick=()=>{const z=document.createElement('div');z.className='zoom';z.innerHTML=`<img src="${im.src}">`;z.onclick=()=>z.remove();document.body.appendChild(z)}});
+  $('caseBox').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{S.answers[k.no][+b.dataset.q]=+b.dataset.v;saveDraft();hydrate();});
+  const r=$('refl');if(r){r.value=S.reflection||'';r.oninput=()=>{S.reflection=r.value;saveDraft()}}
+  if($('prevC'))$('prevC').onclick=()=>{S.active--;renderCase();scrollTo({top:0,behavior:'smooth'})};
+  if($('nextC'))$('nextC').onclick=()=>{S.active++;renderCase();scrollTo({top:0,behavior:'smooth'})};
+  hydrate();
+}
+function hydrate(){
+  const k=S.cases[S.active],a=S.answers[k.no];
+  $('caseBox').querySelectorAll('.opt').forEach(b=>b.classList.toggle('sel',a[+b.dataset.q]===+b.dataset.v));
+  k.questions.forEach((_,j)=>{const el=$('q_'+j);if(el){el.classList.toggle('answered',a[j]!==null);if(a[j]!==null)el.classList.remove('missing')}});
+  progress();renderStepperMarks();
+}
+function renderStepperMarks(){$('stepper').querySelectorAll('.step').forEach((el,i)=>el.classList.toggle('done',caseDone(S.cases[i])))}
+function counts(){let t=0,d=0;S.cases.forEach(k=>{(S.answers[k.no]||[]).forEach(v=>{t++;if(v!==null)d++})});return{t,d}}
+function progress(){const{t,d}=counts();$('bar').style.width=(t?d/t*100:0)+'%';$('doneStatus').textContent=`أجبت عن ${d} من ${t} سؤالًا`}
+
+/* ---------- المؤقت ---------- */
+function startTimer(){
+  clearInterval(S.tick);
+  if(!S.timeLimit){show('timer',false);return}
+  show('timer');
+  const end=new Date(S.startedAt).getTime()+S.timeLimit*60000;
+  const upd=()=>{const left=Math.max(0,Math.round((end-Date.now())/1000));const m=String(Math.floor(left/60)).padStart(2,'0'),s=String(left%60).padStart(2,'0');$('timer').textContent='⏱ '+m+':'+s;$('timer').classList.toggle('low',left<=60);if(left<=0){clearInterval(S.tick);submit(true)}};
+  upd();S.tick=setInterval(upd,1000);
+}
+
+/* ---------- الإرسال ---------- */
+function buildPayload(){return{compId:S.comp.id,studentName:S.profile.name,className:S.profile.className,caseNo:S.chosen||S.cases[0].no,submissionId:S.submissionId,startedAt:S.startedAt,reflection:S.reflection||'',answers:S.cases.map(k=>({caseNo:k.no,a:S.answers[k.no]}))}}
+function confirmBox(msg){return new Promise(res=>{const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="box"><h2 style="font-size:22px">تأكيد الإرسال</h2><p class="desc" style="font-size:16px">${msg}</p><div style="display:flex;gap:10px;justify-content:center"><button class="primary" id="mYes">نعم، أرسل</button><button class="secondary" id="mNo">مراجعة</button></div></div>`;document.body.appendChild(m);m.querySelector('#mYes').onclick=()=>{m.remove();res(true)};m.querySelector('#mNo').onclick=()=>{m.remove();res(false)}})}
+let sending=false;
+async function submit(auto){
+  if(sending)return;
+  const{t,d}=counts();
+  if(!auto){
+    if(d<t){
+      const firstCase=S.cases.findIndex(k=>!caseDone(k));
+      if(firstCase!==S.active){S.active=firstCase;renderCase()}
+      const k=S.cases[S.active];k.questions.forEach((_,j)=>{if(S.answers[k.no][j]===null)$('q_'+j).classList.add('missing')});
+      const first=document.querySelector('.q.missing');if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+      $('submitError').textContent=`أكمل جميع الأسئلة قبل الإرسال. المتبقي: ${t-d}`;return;
+    }
+    if(!(await confirmBox('هل أنت متأكد من إجاباتك؟ لا يمكن تعديلها بعد الإرسال.')))return;
+  }
+  sending=true;const btn=$('submitBtn');btn.disabled=true;$('submitError').textContent='جارٍ إرسال إجاباتك…';
+  const p=buildPayload();
+  try{
+    const j=await C.api('submit',p);
+    if(!j.ok){if(j.alreadySubmitted){clearDraft();}throw new Error(j.error)}
+    clearInterval(S.tick);clearDraft();removePending(p.submissionId);showResult(j.result,true);
+  }catch(e){
+    if(/الاتصال|مهلة|الإنترنت/.test(e.message)){addPending(p);clearInterval(S.tick);clearDraft();showResult(null,false);}
+    else $('submitError').textContent='⚠️ '+e.message;
+  }finally{sending=false;btn.disabled=false}
+}
+function getPending(){try{return JSON.parse(localStorage.getItem(PENDING)||'[]')}catch(e){return[]}}
+function addPending(p){const a=getPending().filter(x=>x.submissionId!==p.submissionId);a.push(p);localStorage.setItem(PENDING,JSON.stringify(a))}
+function removePending(id){localStorage.setItem(PENDING,JSON.stringify(getPending().filter(x=>x.submissionId!==id)))}
+async function retryPending(silent){
+  const a=getPending();if(!a.length)return 0;let n=0;
+  for(const p of a){try{const j=await C.api('submit',p);if(j.ok||j.alreadySubmitted){removePending(p.submissionId);n++}}catch(e){}}
+  if(!silent)showPendingNotice();
+  return n;
+}
+function showPendingNotice(){
+  const a=getPending();const box=$('pendingBox');if(!box)return;
+  if(!a.length){show('pendingBox',false);return}
+  show('pendingBox');box.innerHTML=`📶 توجد ${a.length} مشاركة محفوظة على هذا الجهاز لم تُرسل بسبب انقطاع الاتصال. <button class="secondary" id="retryNow">إعادة الإرسال الآن</button>`;
+  $('retryNow').onclick=async()=>{box.textContent='جارٍ الإرسال…';const n=await retryPending(true);box.textContent=n?'✓ تم إرسال المشاركات المحفوظة.':'تعذر الإرسال، حاول لاحقًا.';setTimeout(showPendingNotice,2500)};
+}
+
+/* ---------- النتيجة ---------- */
+function showResult(r,sent){
+  screen('result');
+  $('rName').textContent=`${S.profile.name} — الفصل ${S.profile.className} — ${S.comp.title}`;
+  if(!r){
+    $('ring').style.setProperty('--p',0);$('rPct').textContent='📶';$('rScore').textContent='بانتظار الإرسال';$('rIcon').textContent='💾';$('rBadge').textContent='حُفظت إجاباتك على هذا الجهاز';
+    $('rMsg').textContent='انقطع الاتصال أثناء الإرسال، وستُرسل إجاباتك تلقائيًا عند فتح المنصة مجددًا وتوفر الإنترنت.';$('rMetrics').innerHTML='';$('rReview').innerHTML='';
+    $('rSent').innerHTML='<button class="primary" id="rRetry">إعادة المحاولة الآن</button>';
+    $('rRetry').onclick=async()=>{$('rSent').textContent='جارٍ الإرسال…';const a=getPending();const p=a.find(x=>x.submissionId===S.submissionId);if(!p){$('rSent').textContent='✓ تم الإرسال.';return}try{const j=await C.api('submit',p);if(j.ok){removePending(p.submissionId);showResult(j.result,true)}else{if(j.alreadySubmitted)removePending(p.submissionId);$('rSent').textContent=j.error}}catch(e){$('rSent').innerHTML='تعذر الإرسال. <button class="primary" id="rRetry2">حاول مجددًا</button>';$('rRetry2').onclick=()=>showResult(null,false)}};
+    return;
+  }
+  const L=C.level(r.percentage);
+  $('ring').style.setProperty('--c',L.color);
+  let cur=0;const target=r.percentage;const anim=setInterval(()=>{cur=Math.min(target,cur+2);$('ring').style.setProperty('--p',cur);$('rPct').textContent=cur+'%';if(cur>=target)clearInterval(anim)},18);
+  $('rScore').textContent=`${r.score} / ${r.maxScore}`;
+  $('rIcon').textContent=L.icon;$('rBadge').textContent=L.badge;$('rBadge').style.color=L.color==='#c0392b'?'#ff9ca3':'#ffd56b';
+  const msgs={excellent:'تفكير علمي ناقد رائع! أنت محقق لا تخدعه الادّعاءات.',verygood:'عمل ممتاز! خطوة صغيرة وتصل إلى القمة.',good:'أداء جيد، واصل التدريب على تحليل الأدلة.',pass:'بداية طيبة، راجع الأسئلة التي أخطأت فيها.',support:'لا بأس! كل محقق عظيم بدأ متدربًا. راجع معلمك لتتعلم أكثر.'};
+  $('rMsg').textContent=msgs[L.cls];
+  $('rMetrics').innerHTML=`<div class="metric">الدرجة<b>${r.score} / ${r.maxScore}</b></div><div class="metric">المستوى<b>${L.name}</b></div><div class="metric">مدة الحل<b>${C.secs(r.durationSec)}</b></div>`;
+  $('rReview').innerHTML=(r.caseScores&&r.caseScores.length>1?`<div class="rules" style="justify-content:center">${r.caseScores.map(c=>`<span class="rule">${c.no}. ${C.esc(c.title)}: <b>${c.score}/${c.max}</b></span>`).join('')}</div>`:'')+
+    (r.review?r.review.map(c=>`<div class="section">مراجعة: ${C.esc(c.title)}</div>`+c.items.map((it,i)=>`<div class="rv ${it.ok?'ok':'bad'}">${it.ok?'✅':'❌'} ${C.esc(it.text)}<small>إجابتك: ${C.esc(it.chosen||'—')}</small>${it.ok?'':`<small>الإجابة الصحيحة: ${C.esc(it.correct)}</small>`}</div>`).join('')).join(''):'');
+  $('rSent').textContent=sent?'✓ تم إرسال نتيجتك إلى المعلم بنجاح.':'';
+  if(r.percentage>=80)confetti();
+}
+function confetti(){
+  const c=$('confetti');c.classList.remove('hidden');c.width=innerWidth;c.height=innerHeight;const x=c.getContext('2d');
+  const cols=['#e5ae3d','#20a896','#2c6da8','#ffffff','#ff9ca3','#92f1bd'];
+  const ps=Array.from({length:160},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,r:4+Math.random()*6,vx:-2+Math.random()*4,vy:2+Math.random()*4,a:Math.random()*6,col:cols[Math.random()*cols.length|0]}));
+  let f=0;(function loop(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.col;x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);x.restore()});if(++f<240)requestAnimationFrame(loop);else c.classList.add('hidden')})();
+}
+
+$('startBtn').onclick=start;$('submitBtn').onclick=()=>submit(false);
+$('studentName').addEventListener('keydown',e=>{if(e.key==='Enter')start()});
+boot();
+</script>
+</body>
+</html>
