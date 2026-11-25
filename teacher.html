@@ -111,7 +111,8 @@ body{margin:0;background:var(--bg);color:#fff;font-family:Tahoma,"Segoe UI",Aria
 <button class="btn gold" onclick="shareImageReport()">مشاركة كصورة</button>
       <button class="btn" id="shareText">📋 مشاركة كنص</button>
 <button class="btn" id="shareImage">🖼️ مشاركة كصورة</button>
-      <button class="btn" onclick="printBeautifulReport()">طباعة</button>
+      <button class="btn gold" onclick="printBeautifulReport('named')">🖨️ تقرير بالأسماء</button>
+      <button class="btn gold" onclick="printBeautifulReport('anon')">🖨️ تقرير بدون أسماء</button>
     </div>
     <div class="sort-note">✓ عرض موحّد للمحقق العلمي ورحلة عالم العلوم. هذا الملف يقرأ النتائج فقط، ولا يغيّر طريقة حفظها في Google Sheets.</div>
   </div>
@@ -629,59 +630,128 @@ ctx.fillText('\u0645\u062f\u064a\u0631 \u0627\u0644\u0645\u062f\u0631\u0633\u062
     }
   }
   }
- function printBeautifulReport(){
-  const data=rows();
+ const INV_CASES=[
+  {no:1,title:'نظارة القراءة العجيبة',img:'contest/assets/mohaqiq/case1.jpg'},
+  {no:2,title:'القطرة الزراعية السحرية',img:'contest/assets/mohaqiq/case2.jpg'},
+  {no:3,title:'سوار الطاقة المغناطيسي',img:'contest/assets/mohaqiq/case3.jpg'},
+  {no:4,title:'عصير الذكاء الخارق',img:'contest/assets/mohaqiq/case4.jpg'},
+  {no:5,title:'حذاء الفهد النفّاث',img:'contest/assets/mohaqiq/case5.jpg'}];
+ const INV_SKILLS=[
+  {k:'q1',q:'س1',name:'تحديد المنتج المُعلَن عنه',pts:1},
+  {k:'q2',q:'س2',name:'تحديد الادّعاء الذي تقدمه الشركة',pts:1},
+  {k:'q3',q:'س3',name:'تقويم منطقية الادّعاء وإمكانية تصديقه',pts:2},
+  {k:'q4',q:'س4',name:'توظيف البيانات والجدول التكراري في الحكم',pts:2},
+  {k:'verdict',q:'س5-أ',name:'إصدار القرار النهائي (قبول/رفض الادّعاء)',pts:1},
+  {k:'q5reason',q:'س5-ب',name:'تبرير القرار بالدليل',pts:1},
+  {k:'q6choice',q:'س6-أ',name:'تفضيل المختبر المستقل على مختبر الشركة',pts:1},
+  {k:'q6reason',q:'س6-ب',name:'تفسير أهمية الحياد في التحقق العلمي',pts:1}];
+ function invAnswers(r){let a=[];try{a=typeof r.answers==='string'?JSON.parse(r.answers||'[]'):(r.answers||[])}catch(e){}return (Array.isArray(a)?a[0]:a)||{}}
+ function printBeautifulReport(mode){
+  mode=mode||'named';
+  let data=rows();const inv=data.filter(r=>platformName(r)==='المحقق العلمي');if(inv.length)data=inv;
   if(!data.length){alert('لا توجد نتائج للطباعة. حمّل النتائج أولاً.');return;}
-  const avg=Math.round(data.reduce((n,r)=>n+resultPercent(r),0)/data.length);
-  const exc=data.filter(r=>resultPercent(r)>=90).length;
-  const sup=data.filter(r=>resultPercent(r)<60).length;
+  const abs=u=>{try{return new URL(u,location.href).href}catch(e){return u}};
   const ck=n=>{const m=String(n).match(/^(\d+)\s*\/\s*(\d+)$/);return m?(+m[2])*1000+(+m[1]):99999};
   const coll=new Intl.Collator('ar',{sensitivity:'base',numeric:true});
+  const pct=r=>resultPercent(r);
+  const stat=rs=>{const n=rs.length,ps=rs.map(pct).sort((a,b)=>a-b);const avg=n?Math.round(ps.reduce((t,v)=>t+v,0)/n):0;return{n,avg,max:n?ps[n-1]:0,min:n?ps[0]:0,med:n?Math.round(n%2?ps[(n-1)/2]:(ps[n/2-1]+ps[n/2])/2):0,
+    lv:[['ممتاز',90,'ex'],['جيد جدًا',80,'vg'],['جيد',70,'gd'],['مقبول',60,'ps'],['يحتاج دعمًا',0,'sp']].map(([nm,min,cl],i,arr)=>({nm,cl,count:rs.filter(r=>{const p=pct(r);return p>=min&&(i===0||p<arr[i-1][1])}).length})),
+    mastery:n?Math.round(rs.filter(r=>pct(r)>=80).length/n*100):0,pass:n?Math.round(rs.filter(r=>pct(r)>=60).length/n*100):0}};
+  const S=stat(data);
   const classes=[...new Set(data.map(r=>normalizedClassName(r.className)||'غير محدد'))].sort((a,b)=>ck(a)-ck(b)||coll.compare(a,b));
+  const byClass=classes.map(c=>[c,data.filter(r=>(normalizedClassName(r.className)||'غير محدد')===c)]);
   const levelClass=p=>p>=90?'ex':p>=80?'vg':p>=70?'gd':p>=60?'ps':'sp';
-  const classPages=classes.map((c,ci)=>{
-    const rs=data.filter(r=>(normalizedClassName(r.className)||'غير محدد')===c).sort((a,b)=>coll.compare(String(a.studentName||''),String(b.studentName||'')));
-    const n=rs.length,rowH=Math.min(9,200/(n+1)),fs=Math.max(6.5,Math.min(10.5,rowH*1.2));
-    const cavg=n?Math.round(rs.reduce((t,r)=>t+resultPercent(r),0)/n):0;
-    return `<section class="page results" style="--rh:${rowH.toFixed(2)}mm;--fs:${fs.toFixed(2)}pt">
-      <div class="top"><div class="brand"><span class="science">علوم</span><div><b>مدرسة أبي الدرداء المتوسطة</b><h1>تقرير المحقق العلمي</h1></div></div><div class="classbadge">الفصل ${esc(c)}</div></div>
-      <div class="subtitle">قائمة الطلاب والنتائج <span class="cstat">عدد الطلاب: ${n} — متوسط الفصل: ${cavg}% — ممتاز: ${rs.filter(r=>resultPercent(r)>=90).length} — يحتاج دعمًا: ${rs.filter(r=>resultPercent(r)<60).length}</span></div>
-      <table><thead><tr><th>م</th><th>اسم الطالب</th><th>النشاط المخصص</th><th>الدرجة</th><th>النسبة</th><th>مستوى الأداء</th></tr></thead>
-      <tbody>${rs.map((r,i)=>`<tr><td>${i+1}</td><td class="nm">${esc(r.studentName)}</td><td class="act"><b>نشاط ${esc(r.assignedCaseNo||'—')}</b>${r.assignedCaseTitle?' — '+esc(r.assignedCaseTitle):''}</td><td>${esc(r.score)}/${esc(r.maxScore)}</td><td>${esc(r.percentage)}%</td><td><span class="pill ${levelClass(+r.percentage)}">${esc(r.level)}</span></td></tr>`).join('')}</tbody></table>
-      ${n<=30?'<div class="quote">كل تجربة تقرّبنا من فهمٍ أكبر للعلم</div>':''}
-      <footer><span>معلم المادة: علي طاهر البقاشي</span><span>مدير المدرسة: فوزي محمد الهلال</span><b>${ci+2}</b></footer>
-    </section>`;
-  }).join('');
-  const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير المحقق العلمي</title><style>
+  let pg=0;
+  const top=(badge)=>`<div class="top"><div class="brand"><span class="science">علوم</span><div><b>مدرسة أبي الدرداء المتوسطة</b><h1>مهمة المحقق العلمي</h1></div></div><div class="classbadge">${badge}</div></div>`;
+  const foot=()=>`<footer><span>معلم المادة: علي طاهر البقاشي</span><span>مدير المدرسة: فوزي محمد الهلال</span><b>${++pg}</b></footer>`;
+  const bars=(items,max)=>`<div class="bars">${items.map(it=>`<div class="bar"><span>${it.label}</span><div class="track"><div class="fill ${it.cl||''}" style="width:${max?Math.max(it.num/max*100,it.num?2:0):0}%"></div></div><span class="v">${it.value}</span></div>`).join('')}</div>`;
+  // skills
+  const skillStats=rs=>INV_SKILLS.map(sk=>{let n=0,ok=0;rs.forEach(r=>{const a=invAnswers(r);if(a&&a[sk.k]){n++;if(a[sk.k].correct)ok++}});return{...sk,n,pct:n?Math.round(ok/n*100):null}});
+  const SK=skillStats(data);
+  const caseStats=INV_CASES.map(c=>{const rs=data.filter(r=>String(r.assignedCaseNo)===String(c.no));return{...c,...stat(rs)}});
+
+  // ---- صفحة فكرة المسابقة ----
+  const ideaPage=`<section class="page idea">${top('1448 هـ')}
+   <div class="hero sm"><h1>🔎 مهمة المحقق العلمي</h1><p>الإعلانات المضلِّلة — نشاط فردي موزّع</p></div>
+   <div class="ribbon">فكرة المسابقة</div>
+   <div class="note">يتقمّص الطالب دور <b>«المحقق العلمي»</b>، فيفحص إعلانًا تجاريًا يدّعي نتائج مذهلة لمنتج ما، ثم يحدّد المنتج والادّعاء، ويقوّم منطقيته، ويوظّف البيانات والجدول التكراري، ليصدر في النهاية <b>قرارًا مبرّرًا</b> بقبول الادّعاء أو رفضه، ويبيّن لماذا يُفضَّل التحقق في <b>مختبر مستقل</b> لا في مختبر الشركة نفسها.</div>
+   <div class="grid3i"><div class="mini"><b>نشاط فردي</b><span>لكل طالب إعلان واحد من خمسة بتوزيع متوازن</span></div><div class="mini"><b>8 أسئلة</b><span>ضمن 6 محاور للتفكير الناقد</span></div><div class="mini"><b>10 درجات</b><span>الدرجة الكاملة لكل نشاط</span></div></div>
+   <div class="ribbon">الإعلانات الخمسة (ملفات القضايا)</div>
+   <div class="cases">${INV_CASES.map(c=>`<div class="case"><img src="${abs(c.img)}" alt=""><b>${c.no}. ${c.title}</b></div>`).join('')}</div>
+   <div class="ribbon">المهارات التي تقيسها المسابقة</div>
+   <table class="sk"><thead><tr><th>السؤال</th><th>المهارة</th><th>الدرجة</th></tr></thead><tbody>${INV_SKILLS.map(k=>`<tr><td>${k.q}</td><td class="nm">${k.name}</td><td>${k.pts}</td></tr>`).join('')}</tbody></table>
+   ${foot()}</section>`;
+
+  // ---- ملخص عام (مشترك) ----
+  const summaryPage=`<section class="page">${top('ملخص النتائج')}
+   <div class="metrics4"><div class="metric"><span>عدد المشاركين</span><b>${S.n}</b></div><div class="metric gold"><span>متوسط الأداء</span><b>${S.avg}%</b></div><div class="metric"><span>نسبة الإتقان (80%+)</span><b>${S.mastery}%</b></div><div class="metric red"><span>يحتاجون دعمًا</span><b>${S.lv[4].count}</b></div></div>
+   <div class="ribbon">توزيع الطلاب على مستويات الأداء</div>
+   ${bars(S.lv.map(l=>({label:l.nm,num:l.count,value:`${l.count} (${S.n?Math.round(l.count/S.n*100):0}%)`,cl:l.cl})),Math.max(1,...S.lv.map(l=>l.count)))}
+   ${classes.length>1?`<div class="ribbon">مقارنة الفصول</div><table><thead><tr><th>الفصل</th><th>المشاركون</th><th>المتوسط</th><th>الإتقان 80%+</th><th>ممتاز</th><th>جيد جدًا</th><th>جيد</th><th>مقبول</th><th>يحتاج دعمًا</th></tr></thead><tbody>${byClass.map(([c,rs])=>{const t=stat(rs);return `<tr><td><b>${esc(c)}</b></td><td>${t.n}</td><td><b>${t.avg}%</b></td><td>${t.mastery}%</td>${t.lv.map(l=>`<td>${l.count}</td>`).join('')}</tr>`}).join('')}</tbody></table>`:''}
+   <div class="ribbon">متوسط الأداء في كل إعلان</div>
+   ${bars(caseStats.filter(c=>c.n).map(c=>({label:c.title,num:c.avg,value:`${c.avg}% (${c.n} طالب)`})),100)}
+   ${foot()}</section>`;
+
+  let html='';
+  if(mode==='anon'){
+    const sorted=SK.filter(k=>k.pct!==null).sort((a,b)=>a.pct-b.pct);
+    const weak=sorted.filter(k=>k.pct<60),strong=[...sorted].reverse().filter(k=>k.pct>=80);
+    const rec=[];
+    if(S.avg>=85)rec.push('مستوى الطلاب العام مرتفع؛ يُقترح تقديم إعلانات أكثر تعقيدًا وتحديات تفكير ناقد إضافية.');
+    else if(S.avg>=70)rec.push('مستوى الطلاب جيد؛ يُقترح تعزيز المهارات منخفضة الإتقان بأمثلة إعلانات واقعية قصيرة داخل الحصة.');
+    else rec.push('متوسط الأداء أقل من المأمول؛ يُقترح إعادة تدريس خطوات التحقق من الادّعاء العلمي بنموذج محلول ثم إعادة التطبيق.');
+    weak.forEach(k=>rec.push(`معالجة مهارة «${k.name}» (${k.q}) — نسبة الإتقان ${k.pct}%.`));
+    if(S.lv[4].count)rec.push(`خطة علاجية لـ ${S.lv[4].count} طالب في مستوى «يحتاج دعمًا» بمجموعات صغيرة وأوراق عمل موجّهة.`);
+    if(S.lv[0].count)rec.push(`تكريم ${S.lv[0].count} طالب في مستوى «ممتاز» وتوظيفهم قادةً لمجموعات التعلم التعاوني.`);
+    const skillPage=`<section class="page skp">${top('تحليل المهارات')}
+     <div class="ribbon">نسبة إتقان كل مهارة (جميع الطلاب)</div>
+     ${bars(SK.filter(k=>k.pct!==null).map(k=>({label:k.q+' '+k.name,num:k.pct,value:k.pct+'%',cl:k.pct>=80?'ex':k.pct>=60?'gd':'sp'})),100)}
+     ${classes.length>1?`<div class="ribbon">إتقان المهارات حسب الفصل</div><table><thead><tr><th>المهارة</th>${classes.map(c=>`<th>${esc(c)}</th>`).join('')}<th>الكل</th></tr></thead><tbody>${INV_SKILLS.map((k,i)=>`<tr><td class="nm">${k.q} ${k.name}</td>${byClass.map(([c,rs])=>{const v=skillStats(rs)[i].pct;return `<td>${v===null?'—':v+'%'}</td>`}).join('')}<td><b>${SK[i].pct===null?'—':SK[i].pct+'%'}</b></td></tr>`).join('')}</tbody></table>`:''}
+     <div class="two"><div><div class="ribbon green">✔ نقاط القوة</div>${strong.length?strong.slice(0,3).map(k=>`<div class="note">${k.name} — ${k.pct}%</div>`).join(''):'<div class="note">—</div>'}</div><div><div class="ribbon red">✖ مهارات تحتاج معالجة</div>${weak.length?weak.slice(0,3).map(k=>`<div class="note">${k.name} — ${k.pct}%</div>`).join(''):'<div class="note">لا توجد مهارة دون 60%</div>'}</div></div>
+     <div class="ribbon">التوصيات والمقترحات</div>${rec.map(t=>`<div class="note">💡 ${t}</div>`).join('')}
+     ${foot()}</section>`;
+    html=ideaPage+summaryPage+skillPage;
+  }else{
+    const classPages=byClass.map(([c,rs0])=>{
+      const rs=[...rs0].sort((a,b)=>coll.compare(String(a.studentName||''),String(b.studentName||'')));
+      const n=rs.length,rowH=Math.min(9,200/(n+1)),fs=Math.max(6.5,Math.min(10.5,rowH*1.2)),t=stat(rs);
+      return `<section class="page results" style="--rh:${rowH.toFixed(2)}mm;--fs:${fs.toFixed(2)}pt">${top('الفصل '+esc(c))}
+      <div class="subtitle">قائمة الطلاب والنتائج <span class="cstat">عدد الطلاب: ${n} — متوسط الفصل: ${t.avg}% — ممتاز: ${t.lv[0].count} — يحتاج دعمًا: ${t.lv[4].count}</span></div>
+      <table><thead><tr><th>م</th><th>اسم الطالب</th><th>الإعلان المخصص</th><th>الدرجة</th><th>النسبة</th><th>مستوى الأداء</th></tr></thead>
+      <tbody>${rs.map((r,i)=>`<tr><td>${i+1}</td><td class="nm">${esc(r.studentName)}</td><td class="act"><b>${esc(r.assignedCaseNo||'—')}</b>${r.assignedCaseTitle?' — '+esc(r.assignedCaseTitle):''}</td><td>${esc(r.score)}/${esc(r.maxScore)}</td><td>${esc(r.percentage)}%</td><td><span class="pill ${levelClass(+r.percentage)}">${esc(r.level)}</span></td></tr>`).join('')}</tbody></table>
+      ${foot()}</section>`;}).join('');
+    html=ideaPage+summaryPage+classPages;
+  }
+  const doc=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${mode==='anon'?'تقرير المحقق العلمي — بدون أسماء':'تقرير المحقق العلمي — بالأسماء'}</title><style>
   @page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#dfe7ed;font-family:Tahoma,Arial;color:#15314b}
-  .page{width:210mm;min-height:297mm;margin:0 auto 8mm;background:#fff;padding:10mm 9mm;position:relative;page-break-after:always;overflow:hidden}
-  .page:before{content:"";position:absolute;right:0;top:0;width:100%;height:7mm;background:linear-gradient(90deg,#d7aa3b 0 15%,#08799b 15% 100%)}
-  .top{margin-top:5mm;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #d9b04d;padding-bottom:5mm}
-  .brand{display:flex;align-items:center;gap:4mm}.science{width:18mm;height:18mm;border-radius:5mm;background:#0b5277;color:white;display:grid;place-items:center;font-weight:900}
-  h1{font-size:20pt;margin:1mm 0 0}.brand b{font-size:11pt}.classbadge{background:#0b5277;color:#fff;border-radius:6mm;padding:3mm 6mm;font-size:14pt;font-weight:900}
-  .hero{text-align:center;margin:13mm 0 8mm}.hero h1{font-size:30pt}.hero p{font-size:13pt;color:#537187}.ribbon{background:linear-gradient(90deg,#073a63,#0b6c91);color:#fff;padding:4mm;border-radius:4mm;font-size:15pt;font-weight:900}
-  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:4mm;margin:8mm 0}.metric{border:1px solid #9bc3d6;border-radius:5mm;padding:6mm;text-align:center;background:#f5fafc}.metric b{display:block;font-size:26pt;color:#0b5277}.metric.gold b{color:#b17a0b}.metric.red b{color:#b52e35}
-  .motto{margin:8mm 0;background:#073a63;color:white;border-right:4mm solid #d9b04d;border-radius:4mm;padding:5mm;text-align:center;font-size:14pt;font-weight:900}
-  .art{margin-top:12mm;text-align:center;font-size:34pt;letter-spacing:5mm}.names{display:flex;justify-content:space-between;margin-top:15mm;border-top:1px solid #cddbe4;padding-top:5mm;font-weight:900}
-  .subtitle{text-align:center;font-size:14pt;font-weight:900;margin:5mm 0 4mm;color:#0b5277}table{width:100%;border-collapse:separate;border-spacing:0;font-size:10.5pt;border:1px solid #b8ccd8;border-radius:3mm;overflow:hidden}
-  th{background:#0b6688;color:#fff;padding:3mm 2mm;border-left:1px solid #6da1b6}td{padding:2.7mm 2mm;border-bottom:1px solid #d6e1e7;border-left:1px solid #e1e8ec;text-align:center}tr:nth-child(even) td{background:#f6fafc}.nm{text-align:right;font-weight:900}small{display:block;color:#69808e;margin-top:1mm}
-  .pill{display:inline-block;padding:1.5mm 3mm;border-radius:4mm;font-weight:900}.ex{background:#d9f5e4;color:#08783f}.vg{background:#dff2fa;color:#076686}.gd{background:#fff0b8;color:#876100}.ps{background:#ffe1bd;color:#984d00}.sp{background:#ffd9dc;color:#a6202b}
-  .results table{font-size:var(--fs)}.results td{height:var(--rh);padding:0 1.5mm;line-height:1.15;white-space:nowrap}.results th{padding:2mm 1.5mm}.results td.act{font-size:.9em;max-width:62mm;overflow:hidden;text-overflow:ellipsis}.results .pill{padding:.6mm 2.4mm}
-  .cstat{display:block;font-size:10pt;color:#4d6a7e;margin-top:1.5mm}.results .subtitle{margin:3mm 0 2.5mm}.results .top{margin-top:4mm;padding-bottom:3mm}
-  .quote{margin-top:5mm;background:#f2f7fa;border-radius:4mm;padding:3mm;text-align:center;font-weight:900;color:#315c72}
-  footer{position:absolute;bottom:8mm;right:9mm;left:9mm;border-top:2px solid #d9b04d;padding-top:3mm;display:flex;justify-content:space-between;align-items:center;font-size:9pt;color:#36546a}footer b{background:#0b5277;color:#fff;border-radius:50%;width:8mm;height:8mm;display:grid;place-items:center}
+  .page{width:210mm;height:297mm;margin:0 auto 8mm;background:#fff;padding:10mm 9mm 20mm;position:relative;page-break-after:always;overflow:hidden}
+  .page:before{content:"";position:absolute;right:0;top:0;width:100%;height:6mm;background:linear-gradient(90deg,#d7aa3b 0 15%,#08799b 15% 100%)}
+  .top{margin-top:4mm;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #d9b04d;padding-bottom:3mm}
+  .brand{display:flex;align-items:center;gap:4mm}.science{width:16mm;height:16mm;border-radius:5mm;background:#0b5277;color:white;display:grid;place-items:center;font-weight:900}
+  h1{font-size:18pt;margin:1mm 0 0}.brand b{font-size:10.5pt}.classbadge{background:#0b5277;color:#fff;border-radius:6mm;padding:2.5mm 5mm;font-size:12.5pt;font-weight:900}
+  .hero{text-align:center;margin:6mm 0 4mm}.hero h1{font-size:24pt;color:#0b3d5e}.hero p{font-size:12pt;color:#537187;margin:1mm 0}
+  .ribbon{background:linear-gradient(90deg,#073a63,#0b6c91);color:#fff;padding:2.2mm 4mm;border-radius:3mm;font-size:11.5pt;font-weight:900;margin:4mm 0 2mm}.ribbon.green{background:#127a52}.ribbon.red{background:#9b2a33}
+  .note{background:#f2f7fa;border-right:3mm solid #d9b04d;border-radius:3mm;padding:2.5mm 4mm;margin:1.5mm 0;line-height:1.85;font-size:10.5pt}
+  .grid3i{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin:3mm 0}.mini{border:1px solid #9bc3d6;border-radius:4mm;padding:3mm;text-align:center;background:#f5fafc}.mini b{display:block;font-size:14pt;color:#0b5277}.mini span{font-size:9pt;color:#4d6a7e}
+  .cases{display:grid;grid-template-columns:repeat(5,1fr);gap:2.5mm}.case{text-align:center;font-size:8.5pt}.case img{width:100%;height:30mm;object-fit:cover;border-radius:2.5mm;border:1px solid #c9d8e1;display:block;margin-bottom:1mm}
+  .metrics4{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin:3mm 0}.metric{border:1px solid #9bc3d6;border-radius:4mm;padding:3.5mm;text-align:center;background:#f5fafc}.metric span{font-size:9pt;color:#4d6a7e}.metric b{display:block;font-size:20pt;color:#0b5277}.metric.gold b{color:#b17a0b}.metric.red b{color:#b52e35}
+  .bars{display:grid;gap:1.8mm;margin-top:1mm}.bar{display:grid;grid-template-columns:62mm 1fr 30mm;align-items:center;gap:2mm;font-size:9.5pt}.track{background:#edf2f5;border-radius:2mm;height:5.5mm;overflow:hidden}.fill{height:100%;background:#0b6688;border-radius:2mm 0 0 2mm}.bar .v{font-weight:900;text-align:left;white-space:nowrap}
+  .fill.ex{background:#1f9d63}.fill.vg{background:#2f7fb8}.fill.gd{background:#c49a12}.fill.ps{background:#c96a12}.fill.sp{background:#c0392b}
+  .skp .bar{grid-template-columns:78mm 1fr 14mm;font-size:8.5pt;line-height:1.2}.skp .track{height:4.5mm}.skp .bars{gap:1.3mm}.skp .note{padding:1.4mm 3mm;font-size:9.3pt;line-height:1.55;margin:1mm 0}.skp td{padding:1.1mm 1.2mm;font-size:8.8pt}.skp .ribbon{margin:3mm 0 1.5mm;padding:1.8mm 4mm;font-size:10.5pt}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+  .names{display:flex;justify-content:space-around;margin-top:6mm;text-align:center;font-weight:900;font-size:10.5pt}
+  .subtitle{text-align:center;font-size:13pt;font-weight:900;margin:3mm 0 2.5mm;color:#0b5277}.cstat{display:block;font-size:10pt;color:#4d6a7e;margin-top:1.5mm}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:9.5pt;border:1px solid #b8ccd8;border-radius:3mm;overflow:hidden}
+  th{background:#0b6688;color:#fff;padding:2mm 1.5mm;border-left:1px solid #6da1b6}td{padding:1.6mm 1.5mm;border-bottom:1px solid #d6e1e7;border-left:1px solid #e1e8ec;text-align:center}tr:nth-child(even) td{background:#f6fafc}.nm{text-align:right;font-weight:900}
+  table.sk td{padding:1.4mm 2mm}
+  .results table{font-size:var(--fs)}.results td{height:var(--rh);padding:0 1.5mm;line-height:1.15;white-space:nowrap}.results td.act{font-size:.9em;max-width:62mm;overflow:hidden;text-overflow:ellipsis}
+  .pill{display:inline-block;padding:.6mm 2.4mm;border-radius:4mm;font-weight:900}.ex{background:#d9f5e4;color:#08783f}.vg{background:#dff2fa;color:#076686}.gd{background:#fff0b8;color:#876100}.ps{background:#ffe1bd;color:#984d00}.sp{background:#ffd9dc;color:#a6202b}
+  footer{position:absolute;bottom:7mm;right:9mm;left:9mm;border-top:2px solid #d9b04d;padding-top:2.5mm;display:flex;justify-content:space-between;align-items:center;font-size:8.5pt;color:#36546a}footer b{background:#0b5277;color:#fff;border-radius:50%;width:7mm;height:7mm;display:grid;place-items:center}
   @media print{body{background:#fff}.page{margin:0;break-after:page;page-break-after:always}}
-  </style></head><body>
-  <section class="page cover"><div class="top"><div class="brand"><span class="science">علوم</span><div><b>مدرسة أبي الدرداء المتوسطة</b><div>معًا نصنع جيلاً مبدعًا في العلوم</div></div></div><div class="classbadge">1448 هـ</div></div>
-  <div class="hero"><h1>تقرير المحقق العلمي</h1><p>نتائج طلاب المرحلة المتوسطة — مركز نتائج العلوم</p></div>
-  <div class="ribbon">ملخص الأداء العام</div><div class="metrics"><div class="metric"><span>عدد المشاركات</span><b>${data.length}</b></div><div class="metric gold"><span>متوسط الأداء</span><b>${avg}%</b></div><div class="metric"><span>ممتاز</span><b>${exc}</b></div><div class="metric red"><span>يحتاج دعمًا</span><b>${sup}</b></div></div>
-  <div class="motto">العلم طريق المستقبل… وأنتم صُنّاعه</div><div class="art">⚗︎  ◉  ✦  ⌬</div>
-  <div class="names"><span>معلم المادة<br>علي طاهر البقاشي</span><span>مدير المدرسة<br>فوزي محمد الهلال</span></div><footer><span>مدرسة أبي الدرداء المتوسطة • مركز نتائج العلوم</span><b>1</b></footer></section>
-  ${classPages}</body></html>`;
+  </style></head><body>${html}<script>window.addEventListener('load',function(){setTimeout(function(){window.focus();window.print()},400)});<\/script></body></html>`;
   const w=window.open('','_blank');
   if(!w){alert('اسمح بالنوافذ المنبثقة للطباعة.');return;}
-  w.document.open();w.document.write(html);w.document.close();
-  setTimeout(()=>{w.focus();w.print();},500);
+  w.document.open();w.document.write(doc);w.document.close();
 }
 
 $('load').onclick=load;

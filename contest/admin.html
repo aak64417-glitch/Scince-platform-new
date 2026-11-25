@@ -381,6 +381,7 @@ function renderEditor(){
   const c=E.config;
   $('editor').innerHTML=`<div class="card"><div class="row" style="justify-content:space-between"><h2>${E.id?'✏️ تعديل المسابقة':'➕ مسابقة جديدة'} <span class="st ${E.status}">${ST[E.status]}</span></h2><button class="btn" onclick="closeEditor()">→ رجوع للقائمة</button></div>
    <div class="grid2"><div><label class="f">عنوان المسابقة *</label><input type="text" data-k="title" value="${esc(c.title)}"></div><div><label class="f">العنوان الفرعي</label><input type="text" data-k="subtitle" value="${esc(c.subtitle||'')}"></div></div>
+   <label class="f" style="margin-top:10px">فكرة المسابقة وهدفها (تظهر في بداية التقارير)</label><textarea data-k="idea">${esc(c.idea||'')}</textarea>
    <label class="f" style="margin-top:10px">التعليمات للطالب</label><textarea data-k="description">${esc(c.description||'')}</textarea>
    <h3>🎓 الصفوف والفصول المشاركة</h3>
    <div class="grid3">${[1,2,3].map(g=>`<div style="background:#0b1f3a;border-radius:12px;padding:10px"><label class="chk"><input type="checkbox" data-grade="${g}" ${c.grades.includes(g)?'checked':''}> الصف ${C.GRADES[g]}</label>
@@ -569,6 +570,7 @@ async function buildReport(){
   const logo=absUrl(await C.resolveImage(A.settings.logo).catch(()=>'')||'');
   const sc=scopeLabel();const comp=sc.comp?A.full[sc.comp.id]:null;
   const fn={named:repNamed,anon:repAnon,honor:repHonor,cert:repCert,support:repSupport}[RTYPE];
+  await resolveCaseImgs(comp);
   const html=fn(rows,sc,comp,logo);A.report=html;
   $('pFrame').srcdoc=html;$('pInfo').textContent=`✓ التقرير جاهز (${rows.length} مشاركة)`;
 }
@@ -589,7 +591,23 @@ function repNamed(rows,sc,comp,logo){
     <table><thead><tr><th>م</th><th>اسم الطالب</th><th>النشاط</th>${showQ?[...Array(maxQ)].map((_,i)=>`<th>س${i+1}</th>`).join(''):''}<th>الدرجة</th><th>النسبة</th><th>المستوى</th></tr></thead><tbody>
     ${ch.map((r,i)=>{const L=C.level(r.percentage);const qs=(r.ans||[]).flatMap(x=>x.qs||[]);return `<tr><td>${ci*30+i+1}</td><td class="nm">${esc(r.studentName)}</td><td><small>${esc(r.caseTitles||r.caseNos)}</small></td>${showQ?[...Array(maxQ)].map((_,k)=>`<td>${qs[k]?(qs[k].c?'<span style="color:#08783f">✔</span>':'<span style="color:#b52e35">✘</span>'):''}</td>`).join(''):''}<td>${r.score}/${r.maxScore}</td><td>${r.percentage}%</td><td><span class="pill ${L.cls}">${L.name}</span></td></tr>`}).join('')}</tbody></table>${foot(++pg)}</section>`).join('');
   }).join('');
-  return wrapDoc('تقرير النتائج بالأسماء',coverPage('تقرير نتائج المسابقة',sc,s,logo,1)+pages);
+  return wrapDoc('تقرير النتائج بالأسماء',ideaPage(comp,sc,logo)+coverPage('تقرير نتائج المسابقة',sc,s,logo,1)+pages);
+}
+let IMGS={};
+async function resolveCaseImgs(comp){IMGS={};if(!comp)return;for(const k of comp.config.cases){if(k.image&&!IMGS[k.image])IMGS[k.image]=absUrl(await C.resolveImage(k.image).catch(()=>'')||'')}}
+function ideaPage(comp,sc,logo){
+  if(!comp)return '';const c=comp.config,cs=c.cases||[];const qs=(cs[0]&&cs[0].questions)||[];
+  const caseMax=k=>k.questions.reduce((t,q)=>t+(Number(q.points)||1),0);
+  const max=c.mode==='all'?cs.reduce((t,k)=>t+caseMax(k),0):(cs[0]?caseMax(cs[0]):0);
+  const qn=c.mode==='all'?cs.reduce((t,k)=>t+k.questions.length,0):qs.length;
+  return `<section class="page">${head('فكرة المسابقة',sc.year+'هـ',logo)}
+  <div class="hero" style="margin:6mm 0 4mm"><h1 style="font-size:23pt">🔎 ${esc(c.title)}</h1>${c.subtitle?`<p>${esc(c.subtitle)}</p>`:''}</div>
+  ${c.idea||c.description?`<div class="sec">فكرة المسابقة</div><div class="note">${esc(c.idea||c.description)}</div>`:''}
+  <div class="kpis"><div class="kpi"><span>الصفوف</span><b style="font-size:11pt">${esc(C.gradesLabel(c.grades))}</b></div><div class="kpi"><span>طريقة التوزيع</span><b style="font-size:10pt">${esc(C.MODES[c.mode]||'')}</b></div><div class="kpi"><span>عدد الأسئلة${c.mode==='all'?'':' لكل طالب'}</span><b>${qn}</b></div><div class="kpi"><span>الدرجة الكاملة</span><b>${max}</b></div></div>
+  <div class="sec">الأنشطة (${cs.length})</div>
+  <div style="display:grid;grid-template-columns:repeat(${Math.min(5,Math.max(cs.length,1))},1fr);gap:2.5mm">${cs.slice(0,10).map((k,i)=>`<div style="text-align:center;font-size:8.5pt;font-weight:900">${IMGS[k.image]?`<img src="${esc(IMGS[k.image])}" style="width:100%;height:28mm;object-fit:cover;border-radius:2.5mm;border:1px solid #c9d8e1;display:block;margin-bottom:1mm">`:''}${i+1}. ${esc(k.title)}</div>`).join('')}</div>
+  ${qs.length?`<div class="sec">أسئلة ${c.mode==='all'||cs.length===1?'النشاط':'كل نشاط (نموذج النشاط 1)'} والمهارات المقيسة</div><table><thead><tr><th>م</th><th>السؤال</th><th>الدرجة</th></tr></thead><tbody>${qs.map((q,i)=>`<tr><td>${i+1}</td><td class="nm" style="font-weight:700">${esc(q.text)}</td><td>${q.points||1}</td></tr>`).join('')}</tbody></table>`:''}
+  ${foot('•')}</section>`;
 }
 function recommendations(s,items,classes){
   const rec=[];
@@ -624,7 +642,7 @@ function repAnon(rows,sc,comp,logo){
     ${rec.length?`<div class="sec">التوصيات والمقترحات</div>${rec.map(t=>`<div class="note">💡 ${esc(t)}</div>`).join('')}`:''}
     <div class="sign"><div>معلم المادة<br>${esc(A.settings.teacherName||'')}</div><div>مدير المدرسة<br>${esc(A.settings.principalName||'')}</div></div>${foot(++pg)}</section>`;
   }
-  return wrapDoc('التقرير الإحصائي',p1+p2);
+  return wrapDoc('التقرير الإحصائي',ideaPage(comp,sc,logo)+p1+p2);
 }
 function topN(rs,n){const s=[...rs].sort((a,b)=>b.percentage-a.percentage||a.durationSec-b.durationSec);return s.slice(0,n)}
 function repHonor(rows,sc,comp,logo){
