@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>نسخ سكربت منصة المحقق العلمي</title>
+<style>
+body{margin:0;font-family:Tahoma,Arial,sans-serif;font-weight:700;background:#071326;color:#fff;padding:18px;text-align:center}
+.box{max-width:640px;margin:auto;background:#102746;border:1px solid #2f5f90;border-radius:18px;padding:20px}
+h1{font-size:22px;margin:0 0 10px}
+button,a.btn{display:block;width:100%;margin:12px 0;padding:18px;border:none;border-radius:14px;font:inherit;font-size:20px;font-weight:900;cursor:pointer;text-decoration:none}
+#copy{background:#e5ae3d;color:#201704}
+a.btn{background:#127a6d;color:#fff}
+#msg{min-height:1.5em;color:#92f1bd;font-size:17px}
+ol{text-align:right;line-height:2;font-size:15px;color:#d9e6f7}
+textarea{width:100%;height:120px;direction:ltr;font-size:11px;border-radius:10px;background:#0b1f3a;color:#cfe0f4;border:1px solid #2f5f90}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>📋 نسخ سكربت منصة المحقق العلمي</h1>
+  <button id="copy" disabled>جارٍ تحميل السكربت…</button>
+  <div id="msg"></div>
+  <a class="btn" href="https://script.google.com/home/projects/create" target="_blank">↗ فتح مشروع Apps Script جديد</a>
+  <ol>
+    <li>اضغط الزر الأصفر لنسخ السكربت كاملًا.</li>
+    <li>افتح مشروعًا جديدًا، واحذف ما في المحرر، ثم الصق (اضغط مطولًا ← لصق).</li>
+    <li>غيّر <b>ضع-رمزك-السري-هنا</b> إلى رمزك السري، واضغط حفظ 💾.</li>
+    <li>اختر الدالة <b>setup</b> واضغط «تشغيل» ووافق على الصلاحيات.</li>
+    <li>نشر ← نشر جديد ← تطبيق ويب ← التنفيذ باسم: أنا ← الوصول: أي شخص ← نشر.</li>
+    <li>انسخ الرابط الذي ينتهي بـ <b>/exec</b> وضعه في لوحة المعلم.</li>
+  </ol>
+  <textarea id="code" readonly></textarea>
+</div>
+<script>
+const btn=document.getElementById('copy'),ta=document.getElementById('code'),msg=document.getElementById('msg');
+fetch('apps-script/Code.gs',{cache:'no-store'}).then(r=>r.text()).then(t=>{ta.value=t;btn.disabled=false;btn.textContent='📋 نسخ السكربت كاملًا'}).catch(()=>{btn.textContent='تعذر التحميل — أعد فتح الصفحة'});
+btn.onclick=async()=>{
+  try{await navigator.clipboard.writeText(ta.value)}catch(e){ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);document.execCommand('copy')}
+  msg.textContent='✓ تم نسخ السكربت ('+ta.value.split('\n').length+' سطرًا). الآن افتح المشروع والصقه.';
+};
+</script>
+</body>
+</html>
