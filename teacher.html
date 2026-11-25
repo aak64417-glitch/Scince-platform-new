@@ -635,16 +635,20 @@ ctx.fillText('\u0645\u062f\u064a\u0631 \u0627\u0644\u0645\u062f\u0631\u0633\u062
   const avg=Math.round(data.reduce((n,r)=>n+resultPercent(r),0)/data.length);
   const exc=data.filter(r=>resultPercent(r)>=90).length;
   const sup=data.filter(r=>resultPercent(r)<60).length;
-  const classes=[...new Set(data.map(r=>normalizedClassName(r.className)||'غير محدد'))];
+  const ck=n=>{const m=String(n).match(/^(\d+)\s*\/\s*(\d+)$/);return m?(+m[2])*1000+(+m[1]):99999};
+  const coll=new Intl.Collator('ar',{sensitivity:'base',numeric:true});
+  const classes=[...new Set(data.map(r=>normalizedClassName(r.className)||'غير محدد'))].sort((a,b)=>ck(a)-ck(b)||coll.compare(a,b));
   const levelClass=p=>p>=90?'ex':p>=80?'vg':p>=70?'gd':p>=60?'ps':'sp';
   const classPages=classes.map((c,ci)=>{
-    const rs=data.filter(r=>(normalizedClassName(r.className)||'غير محدد')===c);
-    return `<section class="page results">
+    const rs=data.filter(r=>(normalizedClassName(r.className)||'غير محدد')===c).sort((a,b)=>coll.compare(String(a.studentName||''),String(b.studentName||'')));
+    const n=rs.length,rowH=Math.min(9,200/(n+1)),fs=Math.max(6.5,Math.min(10.5,rowH*1.2));
+    const cavg=n?Math.round(rs.reduce((t,r)=>t+resultPercent(r),0)/n):0;
+    return `<section class="page results" style="--rh:${rowH.toFixed(2)}mm;--fs:${fs.toFixed(2)}pt">
       <div class="top"><div class="brand"><span class="science">علوم</span><div><b>مدرسة أبي الدرداء المتوسطة</b><h1>تقرير المحقق العلمي</h1></div></div><div class="classbadge">الفصل ${esc(c)}</div></div>
-      <div class="subtitle">قائمة الطلاب والنتائج</div>
+      <div class="subtitle">قائمة الطلاب والنتائج <span class="cstat">عدد الطلاب: ${n} — متوسط الفصل: ${cavg}% — ممتاز: ${rs.filter(r=>resultPercent(r)>=90).length} — يحتاج دعمًا: ${rs.filter(r=>resultPercent(r)<60).length}</span></div>
       <table><thead><tr><th>م</th><th>اسم الطالب</th><th>النشاط المخصص</th><th>الدرجة</th><th>النسبة</th><th>مستوى الأداء</th></tr></thead>
-      <tbody>${rs.map((r,i)=>`<tr><td>${i+1}</td><td class="nm">${esc(r.studentName)}</td><td><b>نشاط ${esc(r.assignedCaseNo||'—')}</b><small>${esc(r.assignedCaseTitle||'')}</small></td><td>${esc(r.score)}/${esc(r.maxScore)}</td><td>${esc(r.percentage)}%</td><td><span class="pill ${levelClass(+r.percentage)}">${esc(r.level)}</span></td></tr>`).join('')}</tbody></table>
-      <div class="quote">كل تجربة تقرّبنا من فهمٍ أكبر للعلم</div>
+      <tbody>${rs.map((r,i)=>`<tr><td>${i+1}</td><td class="nm">${esc(r.studentName)}</td><td class="act"><b>نشاط ${esc(r.assignedCaseNo||'—')}</b>${r.assignedCaseTitle?' — '+esc(r.assignedCaseTitle):''}</td><td>${esc(r.score)}/${esc(r.maxScore)}</td><td>${esc(r.percentage)}%</td><td><span class="pill ${levelClass(+r.percentage)}">${esc(r.level)}</span></td></tr>`).join('')}</tbody></table>
+      ${n<=30?'<div class="quote">كل تجربة تقرّبنا من فهمٍ أكبر للعلم</div>':''}
       <footer><span>معلم المادة: علي طاهر البقاشي</span><span>مدير المدرسة: فوزي محمد الهلال</span><b>${ci+2}</b></footer>
     </section>`;
   }).join('');
@@ -662,6 +666,8 @@ ctx.fillText('\u0645\u062f\u064a\u0631 \u0627\u0644\u0645\u062f\u0631\u0633\u062
   .subtitle{text-align:center;font-size:14pt;font-weight:900;margin:5mm 0 4mm;color:#0b5277}table{width:100%;border-collapse:separate;border-spacing:0;font-size:10.5pt;border:1px solid #b8ccd8;border-radius:3mm;overflow:hidden}
   th{background:#0b6688;color:#fff;padding:3mm 2mm;border-left:1px solid #6da1b6}td{padding:2.7mm 2mm;border-bottom:1px solid #d6e1e7;border-left:1px solid #e1e8ec;text-align:center}tr:nth-child(even) td{background:#f6fafc}.nm{text-align:right;font-weight:900}small{display:block;color:#69808e;margin-top:1mm}
   .pill{display:inline-block;padding:1.5mm 3mm;border-radius:4mm;font-weight:900}.ex{background:#d9f5e4;color:#08783f}.vg{background:#dff2fa;color:#076686}.gd{background:#fff0b8;color:#876100}.ps{background:#ffe1bd;color:#984d00}.sp{background:#ffd9dc;color:#a6202b}
+  .results table{font-size:var(--fs)}.results td{height:var(--rh);padding:0 1.5mm;line-height:1.15;white-space:nowrap}.results th{padding:2mm 1.5mm}.results td.act{font-size:.9em;max-width:62mm;overflow:hidden;text-overflow:ellipsis}.results .pill{padding:.6mm 2.4mm}
+  .cstat{display:block;font-size:10pt;color:#4d6a7e;margin-top:1.5mm}.results .subtitle{margin:3mm 0 2.5mm}.results .top{margin-top:4mm;padding-bottom:3mm}
   .quote{margin-top:5mm;background:#f2f7fa;border-radius:4mm;padding:3mm;text-align:center;font-weight:900;color:#315c72}
   footer{position:absolute;bottom:8mm;right:9mm;left:9mm;border-top:2px solid #d9b04d;padding-top:3mm;display:flex;justify-content:space-between;align-items:center;font-size:9pt;color:#36546a}footer b{background:#0b5277;color:#fff;border-radius:50%;width:8mm;height:8mm;display:grid;place-items:center}
   @media print{body{background:#fff}.page{margin:0;break-after:page;page-break-after:always}}
